@@ -1,4 +1,4 @@
-<img src="./assets/hero.png" alt="Yato Sports, evening edition. Headlines: Full-stack boss appears in Shibuya!! Won't forgive even a 2px misalignment!! Sarthak Saklani, full-stack engineer, will not tolerate a 2px misalignment." width="100%">
+<img src="./assets/hero.png" alt="Yato Sports, evening edition. Headlines: Full-stack boss hits Shibuya!! 2px off? Not on his watch!! Sarthak Saklani, full-stack engineer, will not tolerate a 2px misalignment." width="100%">
 
 <p align="center">
   <a href="https://sarthak.space"><img src="https://img.shields.io/badge/sarthak.space-D6241E?style=for-the-badge&logo=googlechrome&logoColor=white" alt="sarthak.space"></a>
@@ -8,9 +8,9 @@
 
 <br>
 
-<img src="./assets/h-yoroshiku.png" alt="夜露死苦, yoroshiku: nice to meet you, written the scary way" width="100%">
+<img src="./assets/h-yoroshiku.png" alt="Nice to meet you!! (yoroshiku, written the scary way)" width="100%">
 
-<img src="./assets/nobori.png" alt="A red banner flag reading バグ上等: bring on the bugs" width="24%" align="left">
+<img src="./assets/nobori.png" alt="A red banner flag: warning, bring on the bugs" width="24%" align="left">
 
 <p align="justify">
 I'm Sarthak, Yato on most of the internet. A full-stack engineer in Tokyo, and the kind of frontend person who notices when your button is two pixels off and tries very hard to be normal about it.

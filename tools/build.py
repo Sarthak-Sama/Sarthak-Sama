@@ -335,33 +335,56 @@ def hanamaru(d, cx, cy, r=34, color=RED):
 
 
 # ── hero: tabloid front page ───────────────────────────────────────────────
+def fit(d, s, key, width, cap):
+    """Largest font size (<= cap) at which `s` fits `width`."""
+    size = cap
+    while size > 10 and d.textlength(s, font=font(key, size)) > width:
+        size -= 2
+    return font(key, size)
+
+
+def deco(d, xy, s, size=16, fill=None, anchor="la"):
+    """Small decorative Japanese, never load-bearing."""
+    d.text(xy, s, font=font("gothic", size), fill=fill or ASH, anchor=anchor)
+
+
 def hero():
     W, H = 1280, 800
     im = Image.new("RGB", (W, H), PAPER)
     d = ImageDraw.Draw(im)
 
-    # focus lines behind everything in the main area
     speed_lines(im, (760, 640), (262, 118, W - 20, H - 20), n=170, inner=(430, 70))
     d = ImageDraw.Draw(im)
 
     # masthead
     d.rectangle((20, 20, W - 20, 104), fill=RED)
-    d.text((44, 62), "やとスポ", font=font("dela", 60), fill=PAPER, anchor="lm")
-    d.text((330, 36), "YATO SPORTS", font=font("anton", 34), fill=PAPER)
-    d.text((332, 76), "夕刊  EVENING EDITION  第21号", font=font("gothic", 18), fill=PAPER)
-    d.rectangle((W - 300, 32, W - 34, 92), fill=PAPER)
-    d.text((W - 167, 48), "2026年11月26日(木)", font=font("gothic", 18), fill=INK, anchor="mm")
-    d.text((W - 167, 76), "定価 140円", font=font("gothic", 18), fill=INK, anchor="mm")
+    d.text((42, 62), "YATO SPORTS", font=fit(d, "YATO SPORTS", "dela", 370, 50), fill=PAPER, anchor="lm")
+    d.text((444, 44), "THE EVENING EDITION", font=font("anton", 26), fill=PAPER)
+    d.text((446, 76), "No. 21   ALL THE NEWS THAT'S FIT TO DEPLOY", font=font("mincho-b", 17), fill=PAPER)
+    deco(d, (446, 26), "夕刊やとスポ", 13, (255, 190, 180))
+    d.rectangle((W - 290, 32, W - 34, 92), fill=PAPER)
+    d.text((W - 162, 50), "THU, NOV 26, 2026", font=font("anton", 20), fill=INK, anchor="mm")
+    d.text((W - 162, 76), "PRICE ¥140", font=font("anton", 18), fill=RED, anchor="mm")
     d.line((20, 112, W - 20, 112), fill=INK, width=3)
 
-    # yellow vertical headline
+    # yellow column: stacked English headline
     d.rectangle((20, 124, 250, H - 20), fill=YELLOW, outline=INK, width=3)
-    vtext(d, 135, 140, "2pxのズレも許さん！！", font("dela", 50), INK, step=53)
+    words = ["2PX", "OFF?", "NOT", "ON HIS", "WATCH!!"]
+    fonts = [fit(d, w, "anton", 196, 150) for w in words]
+    heights = [f.size * 0.98 for f in fonts]
+    scale = min(1.0, 600 / sum(heights))
+    y = 140
+    for w, f in zip(words, fonts):
+        f = font("anton", int(f.size * scale))
+        d.text((135, y), w, font=f, fill=INK, anchor="mt")
+        y += f.size * 0.98
+    d.text((135, H - 44), "許さん", font=font("dela", 22), fill=RED, anchor="mm")
 
     # red headline block
     d.rectangle((272, 124, 800, 290), fill=RED, outline=INK, width=3)
-    d.text((292, 168), "フルスタック番長、", font=font("dela", 50), fill=PAPER, anchor="lm")
-    d.text((292, 240), "渋谷に現る！！", font=font("dela", 64), fill=YELLOW, anchor="lm")
+    d.text((292, 196), "FULL-STACK BOSS", font=fit(d, "FULL-STACK BOSS", "anton", 490, 66), fill=PAPER, anchor="ls")
+    d.text((292, 276), "HITS SHIBUYA!!", font=fit(d, "HITS SHIBUYA!!", "anton", 490, 76), fill=YELLOW, anchor="ls")
+    deco(d, (788, 132), "番長", 15, (255, 190, 180), anchor="ra")
 
     # article
     d.rectangle((272, 302, 800, 556), fill=PAPER, outline=INK, width=2)
@@ -370,25 +393,22 @@ def hero():
             "still processing. He builds tools for developers and for people moving to Japan. "
             "Asked for comment, he said the button on this page is two pixels off.")
     f = font("mincho-b", 16)
-    words = body.split()
-    # two columns
-    col_w, x_a, x_b, y0 = 236, 288, 548, 316
-    lines = wrap(body, f, col_w, d)
+    lines = wrap(body, f, 236, d)
     half = (len(lines) + 1) // 2
     for i, l in enumerate(lines):
-        x = x_a if i < half else x_b
-        y = y0 + (i if i < half else i - half) * 22
-        d.text((x, y), l, font=f, fill=INK)
+        x = 288 if i < half else 548
+        d.text((x, 316 + (i if i < half else i - half) * 22), l, font=f, fill=INK)
     d.line((536, 314, 536, 462), fill=INK, width=1)
 
     # fortune column
     d.rectangle((284, 474, 788, 546), fill=YELLOW, outline=INK, width=2)
     d.rectangle((284, 474, 400, 546), fill=INK)
-    d.text((342, 496), "今日の運勢", font=font("gothic", 18), fill=YELLOW, anchor="mm")
-    d.text((342, 526), "FORTUNE", font=font("anton", 18), fill=PAPER, anchor="mm")
-    d.text((414, 492), "大吉!", font=font("dela", 24), fill=RED, anchor="lm")
-    d.text((486, 492), "Your build passes on the first try.", font=font("mincho-b", 16), fill=INK, anchor="lm")
+    d.text((342, 496), "TODAY'S", font=font("anton", 18), fill=YELLOW, anchor="mm")
+    d.text((342, 524), "FORTUNE", font=font("anton", 18), fill=PAPER, anchor="mm")
+    d.text((414, 492), "GREAT LUCK!", font=font("anton", 22), fill=RED, anchor="lm")
+    d.text((530, 492), "Your build passes on the first try.", font=font("mincho-b", 16), fill=INK, anchor="lm")
     d.text((414, 526), "Lucky item: a semicolon. Avoid: Fridays.", font=font("mincho-b", 16), fill=INK, anchor="lm")
+    deco(d, (780, 532), "大吉", 13, INK, anchor="rm")
 
     # photo
     a = crop("tiger", (0.0, 0.12, 1.0, 0.62), (420, 420), invert=False, gamma=1.25, contrast=1.7)
@@ -396,20 +416,18 @@ def hero():
     ink(im, halftone(a, cell=5.5, angle=24), INK, (829, 134))
     d.rectangle((818, 124, 1260, 566), outline=INK, width=3)
     d.rectangle((818, 528, 1260, 566), fill=INK)
-    d.text((834, 547), "写真はイメージです。本人ではありません。", font=font("gothic", 16), fill=PAPER, anchor="lm")
+    d.text((834, 547), "PHOTO FOR ILLUSTRATION ONLY. NOT HIM.", font=font("anton", 18), fill=PAPER, anchor="lm")
     stroked(im, (850, 190), "ドン！！", font("dela", 76), INK, PAPER, 6, angle=12)
     d = ImageDraw.Draw(im)
-    # the tiger disagrees with its caption
-    d.ellipse((1046, 330, 1250, 430), fill=PAPER, outline=INK, width=3)
-    d.polygon([(1080, 412), (1040, 470), (1110, 424)], fill=PAPER)
-    d.line([(1084, 414), (1040, 470), (1106, 425)], fill=INK, width=3)
-    d.text((1148, 368), "…本人です。", font=font("gothic", 24), fill=INK, anchor="mm")
-    d.text((1148, 402), "(it's me.)", font=font("mincho-b", 16), fill=ASH, anchor="mm")
-    # extra-edition starburst
-    burst(im, (800, 112), 62, "号外", "EXTRA!")
+    d.ellipse((1060, 336, 1248, 420), fill=PAPER, outline=INK, width=3)
+    d.polygon([(1092, 404), (1050, 462), (1120, 414)], fill=PAPER)
+    d.line([(1096, 406), (1050, 462), (1116, 415)], fill=INK, width=3)
+    d.text((1154, 378), "...it's me.", font=font("dela", 24), fill=INK, anchor="mm")
+    burst(im, (1196, 168), 58, "EXTRA!", None)
+    d = ImageDraw.Draw(im)
+    deco(d, (1196, 200), "号外", 12, INK, anchor="mm")
 
     # name band
-    d = ImageDraw.Draw(im)
     name = "SARTHAK SAKLANI"
     nf = font("anton", 118)
     tw = d.textlength(name, font=nf)
@@ -421,7 +439,6 @@ def hero():
     dw = d.textlength(deck, font=df)
     d.rectangle((272, 726, 300 + dw, 766), fill=YELLOW)
     d.text((288, 746), deck, font=df, fill=INK, anchor="lm")
-
     save(grime(im, creases=True), "hero.png")
 
 
@@ -429,26 +446,25 @@ def hero():
 def yoroshiku():
     W, H = 1280, 230
     im = Image.new("RGB", (W, H), PAPER)
-    m = text_mask((W, H), (36, 188), "夜露死苦", font("boku", 150), anchor="ls")
-    misprint(im, m, INK, RED, off=(7, 5), worn=.08)
+    # the scary kanji sit behind as decoration
+    m = text_mask((W, H), (W - 40, 200), "夜露死苦", font("boku", 170), anchor="rs")
+    ink(im, distress(m, .1), TINT)
+    stroked(im, (40, 28), "NICE TO MEET YOU!!", font("anton", 104), RED, INK, 5)
     d = ImageDraw.Draw(im)
-    stroked(im, (680, 34), "YOROSHIKU!!", font("anton", 76), RED, INK, 4)
-    d = ImageDraw.Draw(im)
-    d.text((684, 136), "nice to meet you, written the scary way.", font=font("mincho-b", 24), fill=INK)
-    d.line((684, 172, W - 40, 172), fill=INK, width=3)
-    d.line((684, 180, W - 40, 180), fill=INK, width=1)
+    d.text((44, 160), "That's \"yoroshiku\", which bosozoku biker gangs wrote with the kanji for", font=font("mincho-b", 21), fill=INK)
+    d.text((44, 190), "night, dew, death and suffering. It still just means nice to meet you.", font=font("mincho-b", 21), fill=INK)
     save(grime(im, creases=False), "h-yoroshiku.png")
 
 
-def section(slug, jp, en, note):
+def section(slug, en, jp, note):
     W, H = 1280, 120
     im = Image.new("RGB", (W, H), PAPER)
     d = ImageDraw.Draw(im)
     d.rectangle((20, 18, W - 20, 102), fill=INK)
     d.rectangle((20, 18, 60, 102), fill=RED)
-    d.text((84, 60), jp, font=font("dela", 46), fill=PAPER, anchor="lm")
-    jw = d.textlength(jp, font=font("dela", 46))
-    d.text((110 + jw, 60), en, font=font("anton", 40), fill=YELLOW, anchor="lm")
+    d.text((84, 60), en, font=font("anton", 52), fill=PAPER, anchor="lm")
+    ew = d.textlength(en, font=font("anton", 52))
+    deco(d, (104 + ew, 60), jp, 18, YELLOW, anchor="lm")
     d.text((W - 44, 60), note, font=font("mincho-b", 18), fill=PAPER, anchor="rm")
     save(grime(im, creases=False), f"h-{slug}.png")
 
@@ -460,25 +476,29 @@ def nobori():
     d = ImageDraw.Draw(im)
     d.rectangle((30, 20, 42, H - 20), fill=(90, 80, 66))
     d.rectangle((42, 40, 270, 64), fill=(90, 80, 66))
-    flag = (54, 70, 264, 860)
-    d.rectangle(flag, fill=RED, outline=INK, width=3)
-    d.rectangle((54, 70, 264, 140), fill=INK)
-    d.text((159, 106), "かかってこい", font=font("dela", 26), fill=YELLOW, anchor="mm")
-    vtext(d, 159, 160, "バグ上等", font("boku", 150), PAPER, step=158)
-    for y in range(150, 850, 70):
-        d.ellipse((46, y, 62, y + 16), fill=PAPER, outline=INK, width=2)
-    d.text((159, 896), "BRING ON THE BUGS", font=font("anton", 30), fill=INK, anchor="mm")
+    d.rectangle((54, 70, 264, 880), fill=RED, outline=INK, width=3)
+    d.rectangle((54, 70, 264, 136), fill=INK)
+    d.text((159, 103), "WARNING", font=font("anton", 34), fill=YELLOW, anchor="mm")
+    y = 160
+    for w in ("BRING", "ON", "THE", "BUGS"):
+        f = fit(d, w, "anton", 176, 170)
+        d.text((159, y), w, font=f, fill=PAPER, anchor="mt")
+        y += f.size * 0.98
+    d.text((159, 848), "バグ上等", font=font("boku", 30), fill=INK, anchor="mm")
+    for yy in range(150, 870, 70):
+        d.ellipse((46, yy, 62, yy + 16), fill=PAPER, outline=INK, width=2)
+    d.text((159, 912), "(it's a flag. he means it.)", font=font("mincho-b", 18), fill=INK, anchor="mm")
     save(grime(im, creases=False), "nobori.png")
 
 
 # ── report card ───────────────────────────────────────────────────────────
 GRADES = [
-    ("国語", "Japanese", "4", "Reads Sōseki in the original. Still gets lost in Shinjuku station."),
-    ("数学", "Data science", "4", "IIT Madras. Writes pandas and keigo in the same afternoon."),
-    ("美術", "Frontend", "5", "Fixes classmates' CSS without being asked. Please stop."),
-    ("技術", "Backend", "4", "Node, Express, Fastify, Postgres. Reliable. Quiet about it."),
-    ("理科", "AI agents", "5", "Building Antideploy. Will tell you about it."),
-    ("体育", "P.E.", "2", "Took up skateboarding. Pavement 1, Saklani 0."),
+    ("Japanese", "国語", "4", "Reads Sōseki in the original. Still gets lost in Shinjuku station."),
+    ("Data science", "数学", "4", "IIT Madras. Writes pandas and keigo in the same afternoon."),
+    ("Frontend", "美術", "5", "Fixes classmates' CSS without being asked. Please stop."),
+    ("Backend", "技術", "4", "Node, Express, Fastify, Postgres. Reliable. Quiet about it."),
+    ("AI agents", "理科", "5", "Building Antideploy. Will tell you about it."),
+    ("P.E.", "体育", "2", "Took up skateboarding. Pavement 1, Saklani 0."),
 ]
 
 
@@ -489,42 +509,41 @@ def report():
     d.rectangle((24, 20, W - 24, H - 20), fill=(246, 241, 229), outline=INK, width=4)
     d.rectangle((34, 30, W - 34, H - 30), outline=INK, width=1)
 
-    d.text((60, 52), "通 知 表", font=font("mincho", 58), fill=INK)
-    d.text((364, 66), "REPORT CARD", font=font("anton", 34), fill=RED)
-    d.text((364, 106), "令和8年度  2026 school year", font=font("mincho-b", 18), fill=ASH)
-    d.text((W - 60, 66), "氏名  サクラニ・サルタク", font=font("mincho-b", 24), fill=INK, anchor="ra")
-    d.text((W - 60, 104), "Sarthak Saklani  (a.k.a. Yato)", font=font("mincho-b", 20), fill=ASH, anchor="ra")
-    d.line((60, 146, W - 60, 146), fill=INK, width=3)
+    d.text((60, 44), "REPORT CARD", font=font("anton", 72), fill=INK)
+    deco(d, (66, 132), "通知表", 16)
+    d.text((440, 70), "SCHOOL YEAR 2026", font=font("anton", 26), fill=RED)
+    d.text((440, 106), "Tokyo, homeroom 2-B", font=font("mincho-b", 18), fill=ASH)
+    d.text((W - 60, 66), "NAME: SARTHAK SAKLANI", font=font("anton", 30), fill=INK, anchor="ra")
+    d.text((W - 60, 108), "a.k.a. Yato", font=font("mincho-b", 20), fill=ASH, anchor="ra")
+    d.line((60, 150, W - 60, 150), fill=INK, width=3)
 
-    # grades
     x0, x1, y0, rh = 60, 790, 166, 96
     d.rectangle((x0, y0, x1, y0 + 44 + rh * len(GRADES)), outline=INK, width=2)
     d.rectangle((x0, y0, x1, y0 + 44), fill=INK)
-    for x, t in ((x0 + 90, "教科  subject"), (x0 + 272, "評定"), (x0 + 520, "所見  teacher's comment")):
-        d.text((x, y0 + 22), t, font=font("mincho-b", 18), fill=PAPER, anchor="mm")
+    for x, t in ((x0 + 100, "SUBJECT"), (x0 + 270, "GRADE"), (x0 + 545, "TEACHER'S COMMENT")):
+        d.text((x, y0 + 22), t, font=font("anton", 20), fill=PAPER, anchor="mm")
     for x in (x0 + 200, x0 + 340):
         d.line((x, y0, x, y0 + 44 + rh * len(GRADES)), fill=INK, width=1)
     hand = font("hand", 20)
-    for i, (jp, en, g, c) in enumerate(GRADES):
+    for i, (en, jp, g, c) in enumerate(GRADES):
         y = y0 + 44 + i * rh
         if i:
             d.line((x0, y, x1, y), fill=INK, width=1)
-        d.text((x0 + 100, y + 36), jp, font=font("mincho", 28), fill=INK, anchor="mm")
-        d.text((x0 + 100, y + 70), en, font=font("mincho-b", 16), fill=ASH, anchor="mm")
+        d.text((x0 + 100, y + 42), en, font=fit(d, en, "anton", 170, 28), fill=INK, anchor="mm")
+        deco(d, (x0 + 100, y + 72), jp, 13, anchor="mm")
         d.text((x0 + 270, y + rh / 2), g, font=font("dela", 48), fill=INK, anchor="mm")
         if g == "5":
             hanamaru(d, x0 + 270, y + rh / 2, r=30)
         for j, l in enumerate(wrap(c, hand, 350, d)):
             d.text((x0 + 362, y + 24 + j * 30), l, font=hand, fill=PEN)
 
-    # right column
     rx0, rx1 = 820, W - 60
 
-    def panel(y, h, jp, en, lines, color=PEN):
+    def panel(y, h, title, jp, lines, color=PEN):
         d.rectangle((rx0, y, rx1, y + h), outline=INK, width=2)
         d.rectangle((rx0, y, rx1, y + 38), fill=INK)
-        d.text((rx0 + 14, y + 19), jp, font=font("mincho-b", 18), fill=PAPER, anchor="lm")
-        d.text((rx1 - 14, y + 19), en, font=font("anton", 18), fill=YELLOW, anchor="rm")
+        d.text((rx0 + 14, y + 19), title, font=font("anton", 20), fill=YELLOW, anchor="lm")
+        deco(d, (rx1 - 14, y + 19), jp, 13, PAPER, anchor="rm")
         yy = y + 52
         for text, hi in lines:
             ls = wrap(text, hand, rx1 - rx0 - 32, d)
@@ -537,17 +556,17 @@ def report():
             yy += 6
         return y + h + 16
 
-    y = panel(166, 276, "進路", "PATH", [
-        ("JNU, BA Japanese Language & Literature. 卒業 2026", False),
-        ("IIT Madras, BSc Data Science. 2027", False),
-        ("Bunka Institute of Language, Tokyo. 2027", False),
-        ("IIM: 合格 → 辞退 (got in, said no)", True),
+    y = panel(166, 276, "PATH", "進路", [
+        ("JNU, BA Japanese Language & Literature. Graduated 2026.", False),
+        ("IIT Madras, BSc Data Science. 2027.", False),
+        ("Bunka Institute of Language, Tokyo. 2027.", False),
+        ("IIM: got in, said no.", True),
     ])
-    y = panel(y, 214, "職場体験", "WORK EXPERIENCE", [
+    y = panel(y, 214, "WORK EXPERIENCE", "職場体験", [
         ("Tryp.com, Frontend Developer. Aug 2025 – Jul 2026. Travel marketplace, ~400K users a month.", False),
         ("Digital Palmy, Full-Stack Intern. Feb – Jul 2025.", False),
     ])
-    y = panel(y, H - 46 - y, "担任より", "FROM THE TEACHER", [
+    y = panel(y, H - 46 - y, "FROM THE TEACHER", "担任より", [
         ("Turned down IIM to come to Japan. Works hard, talks fast, ships things. Please hire him so his relatives can relax.", False),
     ], color=RED)
     seal(im, (rx1 - 60, H - 110), "担任", r=40)
@@ -556,20 +575,20 @@ def report():
 
 # ── tabloid clippings (projects) ──────────────────────────────────────────
 CLIPS = [
-    dict(slug="antideploy", tag="速報", tag_en="BREAKING", tagc="red", src="fuji", box=(0.35, 0.0, 0.95, 0.75),
-         jp="AIエージェント、自力でデプロイ！？", title="ANTIDEPLOY",
+    dict(slug="antideploy", tag="BREAKING", jp="速報", tagc="red", src="fuji", box=(0.35, 0.0, 0.95, 0.75),
+         head="AI AGENTS NOW SHIP THEIR OWN CODE?!", title="ANTIDEPLOY",
          desc="A deploy platform built for coding agents. The agents write the code; somebody still has to ship it.",
          meta="antideploy.com  /  in progress"),
-    dict(slug="konbini", tag="独占", tag_en="EXCLUSIVE", tagc="yellow", src="ghost", box=(0.52, 0.0, 0.98, 1.0),
-         jp="人生、コンビニで全部そろう！！", title="CAREER KONBINI",
+    dict(slug="konbini", tag="EXCLUSIVE", jp="独占", tagc="yellow", src="ghost", box=(0.52, 0.0, 0.98, 1.0),
+         head="YOUR WHOLE LIFE, SOLD AT A KONBINI!!", title="CAREER KONBINI",
          desc="Jobs, scholarships and Japanese-format paperwork for life in Japan, all on one shelf.",
          meta="TypeScript"),
-    dict(slug="matchi", tag="衝撃", tag_en="SHOCK", tagc="red", src="wave", box=(0.0, 0.05, 0.62, 0.95),
-         jp="東京937の街、全部ランキング！！", title="MATCHI",
+    dict(slug="matchi", tag="SHOCK", jp="衝撃", tagc="red", src="wave", box=(0.0, 0.05, 0.62, 0.95),
+         head="ALL 937 TOKYO NEIGHBORHOODS, RANKED!!", title="MATCHI",
          desc="Ranks 937 Tokyo neighborhoods by your commute, budget and lifestyle.",
          meta="TypeScript  /  Next.js  /  Fastify  /  PostGIS"),
-    dict(slug="yomimori", tag="話題", tag_en="TRENDING", tagc="yellow", src="skeleton", box=(0.0, 0.05, 0.34, 0.95),
-         jp="AIが書いた物語で日本語を読む！？", title="YOMIMORI",
+    dict(slug="yomimori", tag="TRENDING", jp="話題", tagc="yellow", src="skeleton", box=(0.0, 0.05, 0.34, 0.95),
+         head="AI WRITES STORIES TO TEACH YOU JAPANESE?!", title="YOMIMORI",
          desc="AI-written Japanese stories at your JLPT level, with furigana and a built-in dictionary.",
          meta="React  /  Express  /  MongoDB  /  Gemini"),
 ]
@@ -587,16 +606,16 @@ def clip(c, i):
 
     x = 486
     bg, fg = (RED, PAPER) if c["tagc"] == "red" else (YELLOW, INK)
-    tf = font("dela", 30)
+    tf = font("anton", 28)
     tw = d.textlength(c["tag"], font=tf)
-    d.rectangle((x, 34, x + tw + 128, 80), fill=bg, outline=INK, width=2)
+    d.rectangle((x, 34, x + tw + 72, 80), fill=bg, outline=INK, width=2)
     d.text((x + 14, 57), c["tag"], font=tf, fill=fg, anchor="lm")
-    d.text((x + tw + 28, 57), c["tag_en"], font=font("anton", 24), fill=fg, anchor="lm")
-    d.text((x, 124), c["jp"], font=font("dela", 38), fill=INK, anchor="lm")
-    misprint(im, text_mask(im.size, (x - 2, 222), c["title"], font("anton", 76), anchor="ls"), INK, RED, off=(5, 4), worn=.05)
+    deco(d, (x + tw + 26, 57), c["jp"], 15, fg, anchor="lm")
+    d.text((x, 126), c["head"], font=fit(d, c["head"], "dela", 740, 36), fill=INK, anchor="lm")
+    misprint(im, text_mask(im.size, (x - 2, 224), c["title"], font("anton", 76), anchor="ls"), INK, RED, off=(5, 4), worn=.05)
     d = ImageDraw.Draw(im)
-    para(d, x, 236, c["desc"], font("mincho-b", 20), 740, lh=28)
-    d.text((x, 314), c["meta"], font=font("anton", 18), fill=ASH, anchor="lm")
+    para(d, x, 238, c["desc"], font("mincho-b", 20), 740, lh=28)
+    d.text((x, 316), c["meta"], font=font("anton", 18), fill=ASH, anchor="lm")
     save(grime(im, creases=False), f"clip-{c['slug']}.png")
 
 
@@ -611,7 +630,7 @@ def burst(im, center, r, jp, en=None, fill=None, spikes=18, angle=-8):
         pts.append((cx + rr * math.cos(a), cy + rr * math.sin(a)))
     d.polygon(pts, fill=fill, outline=INK, width=3)
     if jp:
-        d.text((cx, cy - (r * 0.12 if en else 0)), jp, font=font("dela", int(r * 0.42)), fill=INK, anchor="mm")
+        d.text((cx, cy - (r * 0.12 if en else 0)), jp, font=fit(d, jp, "dela", r * 1.2, int(r * 0.42)), fill=INK, anchor="mm")
     if en:
         d.text((cx, cy + r * 0.3), en, font=font("anton", int(r * 0.24)), fill=RED, anchor="mm")
 
@@ -693,42 +712,42 @@ def yonkoma():
     im = Image.new("RGB", (W, H), PAPER)
     d = ImageDraw.Draw(im)
     d.rectangle((20, 16, W - 20, 64), fill=INK)
-    d.text((40, 40), "四コマ漫画「締切」", font=font("dela", 26), fill=PAPER, anchor="lm")
-    d.text((330, 40), "4-PANEL COMIC: DEADLINE", font=font("anton", 24), fill=YELLOW, anchor="lm")
-    d.text((W - 40, 40), "作・やと  based on a true story", font=font("mincho-b", 16), fill=PAPER, anchor="rm")
+    d.text((40, 40), "4-PANEL COMIC: \"DEADLINE\"", font=font("anton", 28), fill=YELLOW, anchor="lm")
+    deco(d, (384, 40), "四コマ漫画", 15, PAPER, anchor="lm")
+    d.text((W - 40, 40), "by Yato. Based on a true story.", font=font("mincho-b", 16), fill=PAPER, anchor="rm")
 
     PW, PH = 296, 330
-    caps = ["“Deadline's tomorrow.” “Easy.”", "3 a.m.", "Deploy!!", "“…it's 2px off.”"]
+    caps = ["THE DAY BEFORE", "3:00 A.M.", "9:00 A.M.", "9:01 A.M."]
     for i in range(4):
         p = Image.new("RGB", (PW, PH), PAPER)
         pd = ImageDraw.Draw(p)
         if i == 0:
-            bubble(p, (12, 12, 176, 66), ["締切、明日です。"], tail=((60, 66), (30, 96)), f=font("gothic", 18))
+            bubble(p, (10, 12, 200, 70), ["Deadline's", "tomorrow."], tail=((60, 70), (30, 98)), f=font("dela", 17))
             pd.text((20, 104), "client", font=font("mincho-b", 13), fill=ASH)
             guy(p, 160, 176, 0.82, mouth="smile")
-            bubble(p, (172, 82, 286, 132), ["余裕っす。"], tail=((214, 132), (190, 150)), f=font("gothic", 18))
+            bubble(p, (186, 84, 286, 132), ["Easy."], tail=((222, 132), (196, 150)), f=font("dela", 20))
         elif i == 1:
             night = halftone(np.full((PH, PW), 0.62, np.float32), cell=5, angle=45)
             ink(p, night, (40, 44, 70))
             pd.ellipse((222, 18, 266, 62), fill=PAPER)
             pd.ellipse((236, 12, 280, 56), fill=(40, 44, 70))
             guy(p, 148, 168, 0.82, mouth="flat", sweat=True)
-            stroked(p, (16, 60), "カタカタ", font("dela", 30), PAPER, INK, 3, angle=8)
-            for k, ch in enumerate("\u30b4" * 3):
-                stroked(p, (262, 120 + k * 40), ch, font("dela", 32), PAPER, INK, 3, anchor="mm", angle=-8)
+            stroked(p, (14, 54), "TAP TAP TAP", font("anton", 30), PAPER, INK, 3, angle=8)
+            for k, ch in enumerate("ゴ" * 3):
+                stroked(p, (262, 128 + k * 40), ch, font("dela", 28), PAPER, INK, 3, anchor="mm", angle=-8)
         elif i == 2:
             burst(p, (PW / 2, 170), 150, None, fill=YELLOW, spikes=16)
             burst(p, (PW / 2, 170), 100, None, fill=RED, spikes=14, angle=4)
             guy(p, PW / 2, 166, 0.82, mouth="open", blown=True)
-            stroked(p, (PW / 2, 42), "デプロイ！！", font("dela", 38), PAPER, INK, 4, anchor="mm", angle=-6)
+            stroked(p, (PW / 2, 42), "DEPLOY!!", font("anton", 56), PAPER, INK, 4, anchor="mm", angle=-6)
         else:
             speed_lines(p, (PW / 2, 150), (0, 0, PW, PH), n=90, inner=(120, 120), seed=9)
             guy(p, PW / 2, 170, 1.55, mouth="o", laptop=False)
-            bubble(p, (40, 14, 256, 64), ["…2pxズレてる。"], f=font("gothic", 20))
+            bubble(p, (40, 14, 256, 64), ["...it's 2px off."], f=font("dela", 20))
         pd = ImageDraw.Draw(p)
         pd.rectangle((0, PH - 34, PW, PH), fill=PAPER)
         pd.line((0, PH - 34, PW, PH - 34), fill=INK, width=2)
-        pd.text((PW / 2, PH - 17), caps[i], font=font("mincho-b", 15), fill=INK, anchor="mm")
+        pd.text((PW / 2, PH - 17), caps[i], font=font("anton", 18), fill=INK, anchor="mm")
         x = 24 + i * (PW + 12)
         im.paste(p, (x, 82))
         d.rectangle((x, 82, x + PW, 82 + PH), outline=INK, width=4)
@@ -741,35 +760,35 @@ def classifieds():
     im = Image.new("RGB", (W, H), PAPER)
     d = ImageDraw.Draw(im)
     d.rectangle((20, 18, W - 20, 86), fill=INK)
-    d.text((40, 52), "求人・求職", font=font("dela", 38), fill=PAPER, anchor="lm")
-    d.text((272, 52), "CLASSIFIEDS", font=font("anton", 36), fill=YELLOW, anchor="lm")
-    d.text((W - 40, 52), "掲載無料  free listing", font=font("mincho-b", 18), fill=PAPER, anchor="rm")
+    d.text((40, 52), "CLASSIFIEDS", font=font("anton", 44), fill=YELLOW, anchor="lm")
+    deco(d, (290, 52), "求人・求職", 16, PAPER, anchor="lm")
+    d.text((W - 40, 52), "Free listing. One per engineer.", font=font("mincho-b", 18), fill=PAPER, anchor="rm")
 
-    # main ad
     d.rectangle((20, 102, 780, H - 20), outline=INK, width=4)
     d.rectangle((30, 112, 770, H - 30), outline=INK, width=1)
-    stroked(im, (52, 190), "求職中！！", font("dela", 92), RED, INK, 4, anchor="ls")
+    stroked(im, (52, 196), "FOR HIRE!!", font("anton", 110), RED, INK, 4, anchor="ls")
     d = ImageDraw.Draw(im)
+    deco(d, (750, 130), "求職中", 15, RED, anchor="ra")
     d.text((54, 214), "FULL-STACK ENGINEER SEEKS", font=font("anton", 44), fill=INK)
     d.text((54, 266), "PRODUCT TEAM IN TOKYO", font=font("anton", 44), fill=INK)
     para(d, 56, 334, "Frontend obsessive, backend capable, building with AI agents. "
                      "Reads Japanese. Brings own keyboard. Will align your buttons for free.",
          font("mincho-b", 22), 680, lh=32)
     d.rectangle((54, 452, 746, 510), fill=YELLOW, outline=INK, width=2)
-    d.text((400, 481), "連絡先  X @Sarthak_Sama  /  LinkedIn  /  sarthak.space", font=font("mincho-b", 21), fill=INK, anchor="mm")
+    d.text((400, 481), "CONTACT:  X @Sarthak_Sama  /  LinkedIn  /  sarthak.space", font=font("anton", 22), fill=INK, anchor="mm")
 
     small = [
-        ("売ります", "FOR SALE", "One IIM seat. Never used. Original owner moved to Tokyo."),
-        ("落とし物", "LOST", "Sense of direction. Shinjuku Station, east exit, probably."),
-        ("求む", "WANTED", "A desk, preferably."),
+        ("FOR SALE", "売ります", "One IIM seat. Never used. Original owner moved to Tokyo."),
+        ("LOST", "落とし物", "Sense of direction. Shinjuku Station, east exit, probably."),
+        ("WANTED", "求む", "A desk, preferably."),
     ]
     y = 102
     hgt = (H - 20 - 102 - 2 * 14) / 3
-    for jp, en, body in small:
+    for en, jp, body in small:
         d.rectangle((796, y, W - 20, y + hgt), outline=INK, width=2)
-        d.text((812, y + 30), jp, font=font("dela", 26), fill=RED, anchor="lm")
-        d.text((812 + d.textlength(jp, font=font("dela", 26)) + 12, y + 30), en, font=font("anton", 22), fill=INK, anchor="lm")
-        para(d, 812, y + 54, body, font("mincho-b", 19), 430, lh=26)
+        d.text((812, y + 30), en, font=font("anton", 28), fill=RED, anchor="lm")
+        deco(d, (812 + d.textlength(en, font=font("anton", 28)) + 12, y + 30), jp, 13, ASH, anchor="lm")
+        para(d, 812, y + 56, body, font("mincho-b", 19), 430, lh=26)
         y += hgt + 14
     save(grime(im, creases=True), "classifieds.png")
 
@@ -781,8 +800,8 @@ if __name__ == "__main__":
             os.remove(os.path.join(ASSETS, f))
     hero()
     yoroshiku()
-    section("tech", "テック面", "THE TECH PAGE", "all stories true, headlines exaggerated")
-    section("attendance", "出席簿", "ATTENDANCE", "contributions, last 30 days")
+    section("tech", "THE TECH PAGE", "テック面", "all stories true, headlines exaggerated")
+    section("attendance", "ATTENDANCE", "出席簿", "contributions, last 30 days")
     nobori()
     report()
     for i, c in enumerate(CLIPS):
