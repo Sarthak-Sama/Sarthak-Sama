@@ -1,4 +1,4 @@
-<img src="./assets/hero.png" alt="Yato Sports, evening edition. Headlines: Full-stack boss appears in Shibuya!! Kicked IIM, came to Tokyo!! Sarthak Saklani, full-stack engineer, will not tolerate a 2px misalignment." width="100%">
+<img src="./assets/hero.png" alt="Yato Sports, evening edition. Headlines: Full-stack boss appears in Shibuya!! Won't forgive even a 2px misalignment!! Sarthak Saklani, full-stack engineer, will not tolerate a 2px misalignment." width="100%">
 
 <p align="center">
   <a href="https://sarthak.space"><img src="https://img.shields.io/badge/sarthak.space-D6241E?style=for-the-badge&logo=googlechrome&logoColor=white" alt="sarthak.space"></a>
@@ -40,6 +40,10 @@ Off the keyboard I'm a man of a hundred hobbies. The latest is skateboarding. To
 <a href="https://github.com/Sarthak-Sama/career-combini"><img src="./assets/clip-konbini.png" alt="Exclusive: Career Konbini, jobs, scholarships and Japanese paperwork on one shelf" width="100%"></a>
 <a href="https://matchi-web-ten.vercel.app"><img src="./assets/clip-matchi.png" alt="Shock: Matchi ranks 937 Tokyo neighborhoods" width="100%"></a>
 <a href="https://github.com/Sarthak-Sama/Yomimori"><img src="./assets/clip-yomimori.png" alt="Trending: Yomimori, AI-written Japanese stories at your JLPT level" width="100%"></a>
+
+<br>
+
+<img src="./assets/yonkoma.png" alt="Four-panel comic, Deadline. 1: The client says the deadline is tomorrow; the sunglasses guy says easy. 2: 3 a.m., typing. 3: Deploy!! 4: ...it's 2px off." width="100%">
 
 <br>
 

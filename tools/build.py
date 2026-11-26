@@ -356,7 +356,7 @@ def hero():
 
     # yellow vertical headline
     d.rectangle((20, 124, 250, H - 20), fill=YELLOW, outline=INK, width=3)
-    vtext(d, 135, 136, "IIM蹴って東京へ！！", font("dela", 54), INK, step=56)
+    vtext(d, 135, 140, "2pxのズレも許さん！！", font("dela", 50), INK, step=53)
 
     # red headline block
     d.rectangle((272, 124, 800, 290), fill=RED, outline=INK, width=3)
@@ -365,10 +365,9 @@ def hero():
 
     # article
     d.rectangle((272, 302, 800, 556), fill=PAPER, outline=INK, width=2)
-    body = ("TOKYO — Sarthak Saklani, known online as Yato, arrived from India on a MEXT scholarship "
-            "after studying Japanese literature at JNU. He got into IIM and turned it down, a decision "
-            "his relatives are still processing. He now builds tools for developers and for people "
-            "moving to Japan, and is currently shipping Antideploy, a deploy platform for coding agents. "
+    body = ("TOKYO — Sarthak Saklani arrived from India on a MEXT scholarship after studying "
+            "Japanese literature at JNU. He turned down IIM to come here, which his relatives are "
+            "still processing. He builds tools for developers and for people moving to Japan. "
             "Asked for comment, he said the button on this page is two pixels off.")
     f = font("mincho-b", 16)
     words = body.split()
@@ -380,7 +379,16 @@ def hero():
         x = x_a if i < half else x_b
         y = y0 + (i if i < half else i - half) * 22
         d.text((x, y), l, font=f, fill=INK)
-    d.line((536, 314, 536, 544), fill=INK, width=1)
+    d.line((536, 314, 536, 462), fill=INK, width=1)
+
+    # fortune column
+    d.rectangle((284, 474, 788, 546), fill=YELLOW, outline=INK, width=2)
+    d.rectangle((284, 474, 400, 546), fill=INK)
+    d.text((342, 496), "今日の運勢", font=font("gothic", 18), fill=YELLOW, anchor="mm")
+    d.text((342, 526), "FORTUNE", font=font("anton", 18), fill=PAPER, anchor="mm")
+    d.text((414, 492), "大吉!", font=font("dela", 24), fill=RED, anchor="lm")
+    d.text((486, 492), "Your build passes on the first try.", font=font("mincho-b", 16), fill=INK, anchor="lm")
+    d.text((414, 526), "Lucky item: a semicolon. Avoid: Fridays.", font=font("mincho-b", 16), fill=INK, anchor="lm")
 
     # photo
     a = crop("tiger", (0.0, 0.12, 1.0, 0.62), (420, 420), invert=False, gamma=1.25, contrast=1.7)
@@ -389,7 +397,16 @@ def hero():
     d.rectangle((818, 124, 1260, 566), outline=INK, width=3)
     d.rectangle((818, 528, 1260, 566), fill=INK)
     d.text((834, 547), "写真はイメージです。本人ではありません。", font=font("gothic", 16), fill=PAPER, anchor="lm")
-    stroked(im, (900, 190), "ドン！！", font("dela", 76), INK, PAPER, 6, angle=12)
+    stroked(im, (850, 190), "ドン！！", font("dela", 76), INK, PAPER, 6, angle=12)
+    d = ImageDraw.Draw(im)
+    # the tiger disagrees with its caption
+    d.ellipse((1046, 330, 1250, 430), fill=PAPER, outline=INK, width=3)
+    d.polygon([(1080, 412), (1040, 470), (1110, 424)], fill=PAPER)
+    d.line([(1084, 414), (1040, 470), (1106, 425)], fill=INK, width=3)
+    d.text((1148, 368), "…本人です。", font=font("gothic", 24), fill=INK, anchor="mm")
+    d.text((1148, 402), "(it's me.)", font=font("mincho-b", 16), fill=ASH, anchor="mm")
+    # extra-edition starburst
+    burst(im, (800, 112), 62, "号外", "EXTRA!")
 
     # name band
     d = ImageDraw.Draw(im)
@@ -583,6 +600,141 @@ def clip(c, i):
     save(grime(im, creases=False), f"clip-{c['slug']}.png")
 
 
+def burst(im, center, r, jp, en=None, fill=None, spikes=18, angle=-8):
+    fill = fill or YELLOW
+    d = ImageDraw.Draw(im)
+    cx, cy = center
+    pts = []
+    for i in range(spikes * 2):
+        a = math.radians(angle) + i * math.pi / spikes
+        rr = r if i % 2 == 0 else r * 0.74
+        pts.append((cx + rr * math.cos(a), cy + rr * math.sin(a)))
+    d.polygon(pts, fill=fill, outline=INK, width=3)
+    if jp:
+        d.text((cx, cy - (r * 0.12 if en else 0)), jp, font=font("dela", int(r * 0.42)), fill=INK, anchor="mm")
+    if en:
+        d.text((cx, cy + r * 0.3), en, font=font("anton", int(r * 0.24)), fill=RED, anchor="mm")
+
+
+SKIN = (242, 214, 184)
+SUIT = (112, 112, 122)
+HAIR = (236, 186, 70)
+TIE = (232, 120, 170)
+
+
+def guy(im, cx, cy, s=1.0, mouth="smile", sweat=False, blown=False, laptop=True):
+    """The sunglasses guy: blond spikes, grey suit, pink tie."""
+    d = ImageDraw.Draw(im)
+    S = lambda v: v * s
+    d.polygon([(cx - S(34), cy + S(42)), (cx + S(34), cy + S(42)), (cx + S(56), cy + S(140)), (cx - S(56), cy + S(140))],
+              fill=SUIT, outline=INK, width=3)
+    d.polygon([(cx - S(13), cy + S(42)), (cx + S(13), cy + S(42)), (cx, cy + S(72))], fill=(250, 250, 250), outline=INK)
+    d.polygon([(cx - S(5), cy + S(50)), (cx + S(5), cy + S(50)), (cx + S(8), cy + S(96)), (cx, cy + S(106)), (cx - S(8), cy + S(96))],
+              fill=TIE, outline=INK, width=2)
+    # hair behind head
+    pts = []
+    n = 13
+    for i in range(n + 1):
+        a = math.radians(190 + i * 160 / n)
+        if blown:
+            rr = S(78) if i % 2 else S(44)
+            a -= math.radians(10)
+        else:
+            rr = S(60) if i % 2 else S(40)
+        pts.append((cx + rr * math.cos(a), cy - S(4) + rr * math.sin(a)))
+    pts += [(cx + S(40), cy + S(6)), (cx - S(40), cy + S(6))]
+    d.polygon(pts, fill=HAIR, outline=INK, width=3)
+    d.ellipse((cx - S(38), cy - S(36), cx + S(38), cy + S(42)), fill=SKIN, outline=INK, width=3)
+    # fringe
+    d.polygon([(cx - S(38), cy - S(6)), (cx - S(30), cy - S(34)), (cx + S(10), cy - S(40)), (cx + S(38), cy - S(12)),
+               (cx + S(20), cy - S(20)), (cx + S(6), cy - S(8)), (cx - S(8), cy - S(22)), (cx - S(22), cy - S(8))],
+              fill=HAIR, outline=INK, width=2)
+    # sunglasses
+    for sx in (-1, 1):
+        d.ellipse((cx + sx * S(17) - S(15), cy - S(2) - S(9), cx + sx * S(17) + S(15), cy - S(2) + S(9)), fill=INK)
+    d.line((cx - S(4), cy - S(5), cx + S(4), cy - S(5)), fill=INK, width=max(2, int(S(3))))
+    d.ellipse((cx - S(26), cy - S(8), cx - S(20), cy - S(4)), fill=(150, 150, 160))
+    my = cy + S(22)
+    if mouth == "smile":
+        d.arc((cx - S(14), my - S(10), cx + S(14), my + S(6)), 20, 160, fill=INK, width=max(2, int(S(3))))
+    elif mouth == "flat":
+        d.line((cx - S(10), my, cx + S(10), my), fill=INK, width=max(2, int(S(3))))
+    elif mouth == "open":
+        d.ellipse((cx - S(12), my - S(8), cx + S(12), my + S(12)), fill=(120, 30, 40), outline=INK, width=2)
+    elif mouth == "o":
+        d.ellipse((cx - S(5), my - S(4), cx + S(5), my + S(6)), fill=INK)
+    if sweat:
+        for ox, oy in ((S(46), -S(26)), (S(54), S(2))):
+            x, y = cx + ox, cy + oy
+            d.polygon([(x, y - S(12)), (x + S(7), y + S(2)), (x - S(7), y + S(2))], fill=(150, 200, 240), outline=INK)
+            d.ellipse((x - S(7), y - S(5), x + S(7), y + S(9)), fill=(150, 200, 240), outline=INK)
+    if laptop:
+        d.rectangle((cx - S(62), cy + S(84), cx + S(62), cy + S(150)), fill=(190, 192, 200), outline=INK, width=3)
+        d.ellipse((cx - S(10), cy + S(108), cx + S(10), cy + S(128)), fill=PAPER, outline=INK, width=2)
+
+
+def bubble(im, box, lines, tail=None, f=None):
+    d = ImageDraw.Draw(im)
+    f = f or font("gothic", 20)
+    d.rounded_rectangle(box, radius=22, fill=(255, 255, 255), outline=INK, width=3)
+    if tail:
+        (bx, by), (tx, ty) = tail
+        d.polygon([(bx - 12, by), (tx, ty), (bx + 12, by)], fill=(255, 255, 255))
+        d.line([(bx - 12, by), (tx, ty), (bx + 12, by)], fill=INK, width=3)
+    cx = (box[0] + box[2]) / 2
+    h = f.size * 1.3
+    y = (box[1] + box[3]) / 2 - h * (len(lines) - 1) / 2
+    for i, l in enumerate(lines):
+        d.text((cx, y + i * h), l, font=f, fill=INK, anchor="mm")
+
+
+def yonkoma():
+    W, H = 1280, 440
+    im = Image.new("RGB", (W, H), PAPER)
+    d = ImageDraw.Draw(im)
+    d.rectangle((20, 16, W - 20, 64), fill=INK)
+    d.text((40, 40), "四コマ漫画「締切」", font=font("dela", 26), fill=PAPER, anchor="lm")
+    d.text((330, 40), "4-PANEL COMIC: DEADLINE", font=font("anton", 24), fill=YELLOW, anchor="lm")
+    d.text((W - 40, 40), "作・やと  based on a true story", font=font("mincho-b", 16), fill=PAPER, anchor="rm")
+
+    PW, PH = 296, 330
+    caps = ["“Deadline's tomorrow.” “Easy.”", "3 a.m.", "Deploy!!", "“…it's 2px off.”"]
+    for i in range(4):
+        p = Image.new("RGB", (PW, PH), PAPER)
+        pd = ImageDraw.Draw(p)
+        if i == 0:
+            bubble(p, (12, 12, 176, 66), ["締切、明日です。"], tail=((60, 66), (30, 96)), f=font("gothic", 18))
+            pd.text((20, 104), "client", font=font("mincho-b", 13), fill=ASH)
+            guy(p, 160, 176, 0.82, mouth="smile")
+            bubble(p, (172, 82, 286, 132), ["余裕っす。"], tail=((214, 132), (190, 150)), f=font("gothic", 18))
+        elif i == 1:
+            night = halftone(np.full((PH, PW), 0.62, np.float32), cell=5, angle=45)
+            ink(p, night, (40, 44, 70))
+            pd.ellipse((222, 18, 266, 62), fill=PAPER)
+            pd.ellipse((236, 12, 280, 56), fill=(40, 44, 70))
+            guy(p, 148, 168, 0.82, mouth="flat", sweat=True)
+            stroked(p, (16, 60), "カタカタ", font("dela", 30), PAPER, INK, 3, angle=8)
+            for k, ch in enumerate("\u30b4" * 3):
+                stroked(p, (262, 120 + k * 40), ch, font("dela", 32), PAPER, INK, 3, anchor="mm", angle=-8)
+        elif i == 2:
+            burst(p, (PW / 2, 170), 150, None, fill=YELLOW, spikes=16)
+            burst(p, (PW / 2, 170), 100, None, fill=RED, spikes=14, angle=4)
+            guy(p, PW / 2, 166, 0.82, mouth="open", blown=True)
+            stroked(p, (PW / 2, 42), "デプロイ！！", font("dela", 38), PAPER, INK, 4, anchor="mm", angle=-6)
+        else:
+            speed_lines(p, (PW / 2, 150), (0, 0, PW, PH), n=90, inner=(120, 120), seed=9)
+            guy(p, PW / 2, 170, 1.55, mouth="o", laptop=False)
+            bubble(p, (40, 14, 256, 64), ["…2pxズレてる。"], f=font("gothic", 20))
+        pd = ImageDraw.Draw(p)
+        pd.rectangle((0, PH - 34, PW, PH), fill=PAPER)
+        pd.line((0, PH - 34, PW, PH - 34), fill=INK, width=2)
+        pd.text((PW / 2, PH - 17), caps[i], font=font("mincho-b", 15), fill=INK, anchor="mm")
+        x = 24 + i * (PW + 12)
+        im.paste(p, (x, 82))
+        d.rectangle((x, 82, x + PW, 82 + PH), outline=INK, width=4)
+    save(grime(im, creases=False), "yonkoma.png")
+
+
 # ── classifieds footer ────────────────────────────────────────────────────
 def classifieds():
     W, H = 1280, 560
@@ -635,4 +787,5 @@ if __name__ == "__main__":
     report()
     for i, c in enumerate(CLIPS):
         clip(c, i)
+    yonkoma()
     classifieds()
