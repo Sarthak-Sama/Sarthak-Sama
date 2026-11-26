@@ -1,57 +1,31 @@
-<img src="./assets/hero.png" alt="Sarthak Saklani, full-stack engineer in Tokyo" width="100%">
+<img src="./assets/hero.png" alt="Business card: Sarthak Saklani, Full-Stack Engineer, certified button aligner (self-certified). Office: Tokyo (location varies)." width="100%">
 
 <p align="center">
-  <a href="https://sarthak.space"><img src="https://img.shields.io/badge/sarthak.space-E8000B?style=for-the-badge&logo=googlechrome&logoColor=white" alt="sarthak.space"></a>
-  <a href="https://x.com/Sarthak_Sama"><img src="https://img.shields.io/badge/@Sarthak__Sama-000000?style=for-the-badge&logo=x&logoColor=white" alt="X"></a>
-  <a href="https://www.linkedin.com/in/sarthak-saklani-734b85235"><img src="https://img.shields.io/badge/LinkedIn-E8000B?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
+  <a href="https://sarthak.space"><img src="https://img.shields.io/badge/sarthak.space-1C1A1F?style=for-the-badge&logo=googlechrome&logoColor=white" alt="sarthak.space"></a>
+  <a href="https://x.com/Sarthak_Sama"><img src="https://img.shields.io/badge/@Sarthak__Sama-E6317D?style=for-the-badge&logo=x&logoColor=white" alt="X"></a>
+  <a href="https://www.linkedin.com/in/sarthak-saklani-734b85235"><img src="https://img.shields.io/badge/LinkedIn-1C1A1F?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
 </p>
 
 <br>
 
-<img src="./assets/h-who.png" alt="Who am I" width="100%">
+Hi, I'm Sarthak. Yato on most of the internet.
 
-<img src="./assets/tiger.png" alt="Tiger by Utagawa Kuniyoshi, printed in red halftone" width="38%" align="left">
+I'm a full-stack engineer in Tokyo. I build tools for developers, and things that make Japan a little less confusing for people moving here. Japan runs on paperwork, so here's mine.
 
-<p align="justify">
-I'm Sarthak, Yato on most of the internet. A full-stack engineer in Tokyo, and the kind of frontend person who notices when your button is two pixels off and tries very hard to be normal about it.
-</p>
-
-<p align="justify">
-I moved here from India on a MEXT scholarship. I studied Japanese literature at JNU, so I can read Sōseki in the original and still get lost inside Shinjuku station. I'm finishing a data science degree at IIT Madras too, so I write keigo and pandas, sometimes in the same afternoon. I got into IIM and turned it down. My relatives are still processing it.
-</p>
-
-<p align="justify">
-Until this summer I owned the frontend of Tryp.com's travel marketplace, used by about 400K people a month. Now I'm building <a href="https://antideploy.com"><b>Antideploy</b></a>, a deploy platform for coding agents.
-</p>
-
-<p align="justify">
-Off the keyboard I'm a man of a hundred hobbies. The latest is skateboarding. Tokyo's pavements have been very patient with me.
-</p>
-
-<br clear="left">
-
-> [!CAUTION]
-> Will notice if your button is 2px off. Will say something.
-
-<img src="./assets/nfo.png" alt="Release information. Experience: Frontend Developer at Tryp.com, Aug 2025 to Jul 2026; Full-Stack Intern at Digital Palmy, Feb to Jul 2025. Education: BA Japanese Language and Literature, JNU, 2026; BSc Data Science and Programming, IIT Madras, 2027; Japanese Language Course, Bunka Institute, 2027." width="100%">
+<img src="./assets/rirekisho.png" alt="Rirekisho (Japanese résumé). Education: JNU BA Japanese Language and Literature 2026; Bunka Institute of Language 2027; IIT Madras BSc Data Science 2027; IIM, got in and said no. Work: Digital Palmy full-stack intern from Feb 2025; Tryp.com frontend developer Aug 2025 to Jul 2026. Qualifications: MEXT scholarship; 2nd place at Hackvatar Tokyo. Personal requests: a full-stack role on a product team in Tokyo. Coffee. A desk, preferably." width="100%">
 
 <br>
 
-<img src="./assets/h-releases.png" alt="Releases" width="100%">
+<img src="./assets/menu-header.png" alt="Today's menu" width="100%">
 
-<a href="https://antideploy.com"><img src="./assets/rel-antideploy.png" alt="Antideploy: a deploy platform built for coding agents" width="100%"></a>
-<a href="https://github.com/Sarthak-Sama/career-combini"><img src="./assets/rel-konbini.png" alt="Career Konbini: jobs, scholarships and Japanese paperwork on one shelf" width="100%"></a>
-<a href="https://matchi-web-ten.vercel.app"><img src="./assets/rel-matchi.png" alt="Matchi: ranks 937 Tokyo neighborhoods by commute, budget and lifestyle" width="100%"></a>
-<a href="https://github.com/Sarthak-Sama/Yomimori"><img src="./assets/rel-yomimori.png" alt="Yomimori: AI-written Japanese stories at your JLPT level" width="100%"></a>
-
-<br>
-
-<img src="./assets/h-activity.png" alt="Activity" width="100%">
-
-<img src="https://github-readme-activity-graph.vercel.app/graph?username=Sarthak-Sama&bg_color=000000&color=e8e2d4&line=e8000b&point=e8e2d4&area=true&area_color=e8000b&hide_border=true&custom_title=%20" width="100%" alt="Contribution activity graph">
+<p align="center">
+  <a href="https://antideploy.com"><img src="./assets/menu-antideploy.png" alt="Antideploy: deploys for coding agents. Market price." width="25%"></a><a href="https://github.com/Sarthak-Sama/career-combini"><img src="./assets/menu-konbini.png" alt="Career Konbini: jobs, scholarships and Japanese paperwork on one shelf. Open 24 hours." width="25%"></a><a href="https://matchi-web-ten.vercel.app"><img src="./assets/menu-matchi.png" alt="Matchi: 937 Tokyo neighborhoods ranked by your commute and budget." width="25%"></a><a href="https://github.com/Sarthak-Sama/Yomimori"><img src="./assets/menu-yomimori.png" alt="Yomimori: AI-written Japanese stories at your JLPT level. All levels." width="25%"></a>
+</p>
 
 <br>
 
-<img src="./assets/footer.png" alt="Open to full-stack roles in Tokyo" width="100%">
+<img src="./assets/reviews.png" alt="Customer reviews. Mohammad Harish, Infinite Studio: the best frontend engineer i have seen in the entire tpot (this part of twitter). Manu Prabhakar, Digital Palmy: quickly adapted to different tech stacks and delivered features with great attention to detail. Alok Singh, freelance client: delivered the project within a very tight deadline without compromising on quality." width="100%">
 
-<p align="center"><sub>Prints by Utagawa Kuniyoshi and Katsushika Hokusai, public domain.</sub></p>
+<br>
+
+<img src="./assets/footer.png" alt="Shop sign: open for full-stack roles in Tokyo. Walk-ins welcome via X or LinkedIn." width="100%">
