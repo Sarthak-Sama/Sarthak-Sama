@@ -2,7 +2,8 @@
 
 Concept: a 2000s Japanese portable MiniDisc player and its discs.
   - hero.svg       the player, with an EL-backlit dot-matrix LCD
-  - md-*.svg       one translucent MiniDisc cartridge per project
+  - receipt.svg    a konbini receipt of work and study history
+  - inbox.svg      a flip phone whose inbox holds testimonials
   - spec.svg       the foil spec sticker from the underside of the device
   - next.svg       a small LCD strip for the footer
   - btn-*.svg      silver hardware buttons for links
@@ -186,9 +187,9 @@ def hero():
 
     marquee = (
         "NOW PLAYING  Antideploy, deploys for coding agents     "
+        "HOBBY 100 OF 100  skateboarding     "
         "India → Tokyo on a MEXT scholarship     "
-        "Japanese literature at JNU, data science at IIT Madras     "
-        "Building for developers and for people finding their way to Japan     "
+        "WARNING  will notice if your button is 2px off     "
     )
 
     body = f"""
@@ -315,107 +316,222 @@ def hero():
     finish("hero.svg", W, H, "Sarthak Saklani, full-stack engineer in Tokyo. A silver MiniDisc player with its LCD showing his name.", body, css)
 
 
-# ── cartridges ─────────────────────────────────────────────────────────────
-PROJECTS = [
-    dict(slug="antideploy", no="01", name="Antideploy", tape="エージェントのためのデプロイ",
-         desc="A deploy platform built for coding agents. The thing I'm building right now.",
-         cast="My main project, in progress", shell="#3B4450", shutter="antideploy.com"),
-    dict(slug="matchi", no="02", name="Matchi", tape="東京で住む街をさがす",
-         desc="Scores and ranks 937 Tokyo neighborhoods against your commute, budget and lifestyle.",
-         cast="TypeScript, Next.js, Fastify, PostGIS", shell="#4FB4E6", shutter="Sarthak-Sama/matchi"),
-    dict(slug="yomimori", no="03", name="Yomimori", tape="物語で日本語を読む",
-         desc="AI-written Japanese stories at your JLPT level, with furigana and a built-in dictionary.",
-         cast="React, Express, MongoDB, Gemini", shell="#F27DB0", shutter="Sarthak-Sama/Yomimori"),
-    dict(slug="japanouts", no="04", name="JapanOuts", tape="日本語学習の相棒",
-         desc="A Japanese learning companion: lessons, reading, daily vocab and picks.",
-         cast="Next.js, TypeScript, MongoDB, Gemini", shell="#FF9A3C", shutter="Sarthak-Sama/japanauts"),
-    dict(slug="codehours", no="05", name="CodeHours", tape="コードを書いた時間を記録",
-         desc="Tracks your coding time with a VS Code extension, a web dashboard and a live embeddable widget.",
-         cast="VS Code API, React, Node", shell="#9BD33F", shutter="Sarthak-Sama/CodeHours"),
-    dict(slug="liveshot", no="06", name="Liveshot", tape="生きているスクリーンショット",
-         desc="A screenshot backed by a live sandbox, with an agent that hunts the bug.",
-         cast="Daytona, AI agents. Daytona HackSprint Tokyo", shell="#9A7BEA", shutter="HackSprint Tokyo"),
+# ── konbini receipt: work and study history ────────────────────────────────
+RECEIPT = [
+    ("BA 日本文学", "JNU, New Delhi", "修了"),
+    ("BSc DATA SCIENCE", "IIT Madras", "2027予定"),
+    ("日本語コース", "Bunka Institute, Tokyo", "2027予定"),
+    ("FRONTEND DEV", "Tryp.com, ~400K users/mo", "25-26"),
+    ("FULLSTACK INTERN", "Digital Palmy", "2025"),
+    ("MEXT SCHOLARSHIP", "thank you, Japan", "¥0"),
+    ("IIM ADMISSION", "politely declined", "返品"),
+]
+
+PAPER_INK = "#2B2B2E"
+
+
+def receipt():
+    W, H = 600, 1060
+    x0, x1, y0, y1, t = 64, 536, 34, 1026, 12
+    zig_top = "".join(f"L{x0 + i*t + t/2} {y0 - 7} L{x0 + (i+1)*t} {y0} " for i in range(int((x1 - x0) / t)))
+    zig_bot = "".join(f"L{x1 - i*t - t/2} {y1 + 7} L{x1 - (i+1)*t} {y1} " for i in range(int((x1 - x0) / t)))
+    paper = f"M{x0} {y0} {zig_top} L{x1} {y1} {zig_bot} Z"
+
+    def c(y, s, size=22, op=1, ls=0):
+        return f'<text class="f-lcd" x="300" y="{y}" font-size="{size}" fill="{PAPER_INK}" opacity="{op}" text-anchor="middle" letter-spacing="{ls}">{esc(s)}</text>'
+
+    def lr(y, l, r, size=22, op=1):
+        return (f'<text class="f-lcd" x="96" y="{y}" font-size="{size}" fill="{PAPER_INK}" opacity="{op}">{esc(l)}</text>'
+                f'<text class="f-lcd" x="504" y="{y}" font-size="{size}" fill="{PAPER_INK}" opacity="{op}" text-anchor="end">{esc(r)}</text>')
+
+    def dash(y):
+        return f'<line x1="96" x2="504" y1="{y}" y2="{y}" stroke="{PAPER_INK}" stroke-width="2" stroke-dasharray="6 5" opacity=".7"/>'
+
+    items, y = [], 318
+    for name, sub, val in RECEIPT:
+        items.append(lr(y, name, val))
+        items.append(f'<text class="f-lcd" x="112" y="{y+26}" font-size="17" fill="{PAPER_INK}" opacity=".6">{esc(sub)}</text>')
+        y += 66
+
+    bars, bx = [], 196
+    seed = [2, 1, 3, 1, 1, 2, 1, 3, 2, 1, 1, 1, 3, 2, 1, 2, 1, 1, 3, 1, 2, 2, 1, 1, 2, 3, 1, 1, 2, 1, 1, 3, 1, 2]
+    for i, w in enumerate(seed):
+        if i % 2 == 0:
+            bars.append(f'<rect x="{bx}" y="938" width="{w*2.4:.1f}" height="44" fill="{PAPER_INK}"/>')
+        bx += w * 2.4 + 1.4
+
+    body = f"""
+<defs>
+  <filter id="drop" x="-10%" y="-5%" width="120%" height="115%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="9"/><feOffset dx="4" dy="10"/>
+    <feComponentTransfer><feFuncA type="linear" slope=".35"/></feComponentTransfer>
+    <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#FFFFFD"/><stop offset=".6" stop-color="#F6F5EF"/><stop offset="1" stop-color="#ECEAE2"/>
+  </linearGradient>
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="1" seed="3"/>
+    <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .07 0"/>
+    <feComposite in2="SourceGraphic" operator="in"/>
+  </filter>
+</defs>
+<g transform="rotate(-1.3 300 530)">
+  <path d="{paper}" fill="url(#paper)" filter="url(#drop)"/>
+  <path d="{paper}" fill="#fff" filter="url(#grain)"/>
+  {c(104, "YATO MART", 46, 1, 4)}
+  {c(140, "やと商店　東京店")}
+  {c(172, "2026年11月26日(木) 17:08", 19, .8)}
+  {c(198, "レジ02　担当 サルタク", 19, .8)}
+  {dash(220)}
+  {c(262, "領　収　書", 30, 1, 6)}
+  {dash(282)}
+  {"".join(items)}
+  {dash(y - 22)}
+  {lr(y + 18, "小計", "1 ENGINEER", 24)}
+  {lr(y + 54, "お預り", "COFFEE")}
+  {lr(y + 88, "お釣り CHANGE", "INDIA→TOKYO")}
+  {"".join(bars)}
+  {c(1008, "返品不可　deploys are final", 16, .7)}
+</g>
+"""
+    alt = "Receipt from Yato Mart: " + "; ".join(f"{n} ({s}) {v}" for n, s, v in RECEIPT) + ". Subtotal: 1 engineer. Paid in coffee."
+    finish("receipt.svg", W, H, alt, body)
+
+
+# ── flip phone: testimonials in the inbox ──────────────────────────────────
+MAIL = [
+    ("Mohammad Harish", "the best frontend engineer i have seen in the entire tpot (this part of twitter)"),
+    ("Manu Prabhakar", "quickly adapted to different tech stacks and delivered features with great attention to detail"),
+    ("Alok Singh", "delivered the project within a very tight deadline without compromising on quality"),
 ]
 
 
-def cartridge(p):
-    W, H = 600, 640
-    c = p["shell"]
-    # shell outline with a chamfered top-right corner (insertion key)
-    shell = "M60 28 H500 L572 100 V590 Q572 616 546 616 H60 Q34 616 34 590 V54 Q34 28 60 28 Z"
-    desc = wrap(p["desc"], 30)
-    desc_svg = "".join(
-        f'<text class="f-body" x="96" y="{314 + i*35}" font-size="28" fill="{INK}">{esc(l)}</text>' for i, l in enumerate(desc)
-    )
-    rules = "".join(
-        f'<line x1="96" x2="504" y1="{323 + i*35}" y2="{323 + i*35}" stroke="#9FB0BF" stroke-opacity=".35"/>' for i in range(4)
-    )
-    tape_w = 34 + 25 * len(p["tape"])
+def keitai():
+    W, H = 600, 1060
+    sx, sy, sw, sh = 124, 96, 352, 380
+    entries, y = [], sy + 76
+    for i, (who, msg) in enumerate(MAIL):
+        lines = wrap(msg, 38)
+        if len(lines) > 2:
+            lines = lines[:2]
+            lines[1] = lines[1][:35] + "…"
+        h = 34 + 22 * len(lines) + 12
+        if i == 0:
+            entries.append(f'<rect x="{sx}" y="{y}" width="{sw}" height="{h}" fill="#FFE6CC"/>'
+                           f'<rect x="{sx}" y="{y}" width="6" height="{h}" fill="{HOLD}"/>')
+        # envelope icon
+        entries.append(f'<g transform="translate({sx+16} {y+11})"><rect width="22" height="15" fill="#fff" stroke="#3A5A8C" stroke-width="2"/>'
+                       f'<path d="M1 1 L11 9 L21 1" fill="none" stroke="#3A5A8C" stroke-width="2"/></g>')
+        entries.append(f'<text class="f-lcd" x="{sx+48}" y="{y+26}" font-size="20" fill="#14253F">{esc(who)}</text>')
+        for j, l in enumerate(lines):
+            entries.append(f'<text class="f-lcd" x="{sx+18}" y="{y+52+22*j}" font-size="16" fill="#3C4656">{esc(l)}</text>')
+        entries.append(f'<line x1="{sx}" x2="{sx+sw}" y1="{y+h}" y2="{y+h}" stroke="#C9D2DE"/>')
+        y += h
+
+    kana = [("1", "あ"), ("2", "か"), ("3", "さ"), ("4", "た"), ("5", "な"), ("6", "は"),
+            ("7", "ま"), ("8", "や"), ("9", "ら"), ("*", "゛"), ("0", "わ"), ("#", "、")]
+    keys = []
+    for i, (n, k) in enumerate(kana):
+        kx = 116 + (i % 3) * 128
+        ky = 752 + (i // 3) * 66
+        keys.append(
+            f'<g transform="translate({kx} {ky})">'
+            f'<rect y="3" width="112" height="52" rx="24" fill="#000" opacity=".15"/>'
+            f'<rect width="112" height="52" rx="24" fill="url(#key)" stroke="{EDGE}" stroke-opacity=".45"/>'
+            f'<text class="f-silk" x="40" y="36" font-size="28" fill="{INK}" text-anchor="middle">{esc(n)}</text>'
+            f'<text class="f-lcd" x="74" y="34" font-size="18" fill="{INK}" opacity=".6" text-anchor="middle">{esc(k)}</text></g>'
+        )
+
     body = f"""
 <defs>
-  <linearGradient id="sh" x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0" stop-color="{c}" stop-opacity=".78"/><stop offset="1" stop-color="{c}" stop-opacity=".95"/>
+  <linearGradient id="pearl" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#F7F8FA"/><stop offset=".5" stop-color="#D7DCE2"/><stop offset="1" stop-color="#AEB5BD"/>
   </linearGradient>
-  <linearGradient id="hl" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".12" stop-color="#fff" stop-opacity="0"/>
-    <stop offset=".88" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".25"/>
+  <linearGradient id="hinge" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8E959D"/><stop offset=".45" stop-color="#EEF1F4"/><stop offset="1" stop-color="#7D848C"/>
   </linearGradient>
-  <radialGradient id="disc" cx=".5" cy=".5" r=".5">
-    <stop offset=".18" stop-color="#3a3f45"/><stop offset=".2" stop-color="#E8ECEF"/>
-    <stop offset=".6" stop-color="#B7BEC5"/><stop offset=".85" stop-color="#EEF1F3"/><stop offset="1" stop-color="#9DA5AD"/>
-  </radialGradient>
-  <linearGradient id="shut" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#F1F3F5"/><stop offset="1" stop-color="#AEB5BC"/>
+  <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#3B7FE6"/><stop offset="1" stop-color="#1C4FB0"/>
   </linearGradient>
-  {brushed("brush", .35)}
-  <filter id="drop" x="-10%" y="-10%" width="120%" height="125%">
-    <feGaussianBlur in="SourceAlpha" stdDeviation="8"/><feOffset dy="8"/>
+  <linearGradient id="key" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C3C9CF"/>
+  </linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".4" stop-color="#fff" stop-opacity=".06"/>
+    <stop offset=".41" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="drop" x="-10%" y="-5%" width="120%" height="115%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="9"/><feOffset dy="10"/>
     <feComponentTransfer><feFuncA type="linear" slope=".3"/></feComponentTransfer>
     <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
-  <clipPath id="shell"><path d="{shell}"/></clipPath>
+  {brushed("brush", .2)}
+  <clipPath id="scr"><rect x="{sx}" y="{sy}" width="{sw}" height="{sh}"/></clipPath>
 </defs>
 
-<g filter="url(#drop)">
-  <!-- base plate behind the translucent plastic -->
-  <path d="{shell}" fill="#E9EDF0"/>
-  <!-- the disc, visible through the plastic -->
-  <circle cx="303" cy="330" r="236" fill="url(#disc)" clip-path="url(#shell)" opacity=".9"/>
-  <path d="{shell}" fill="url(#sh)"/>
+<!-- lower half -->
+<g filter="url(#drop)"><rect x="84" y="548" width="432" height="494" rx="44" fill="url(#pearl)"/></g>
+<rect x="84" y="548" width="432" height="494" rx="44" fill="#fff" filter="url(#brush)"/>
+<rect x="84.5" y="548.5" width="431" height="493" rx="44" fill="none" stroke="{EDGE}" stroke-opacity=".5"/>
+
+<!-- upper half -->
+<g filter="url(#drop)"><rect x="80" y="18" width="440" height="510" rx="48" fill="url(#pearl)"/></g>
+<rect x="80" y="18" width="440" height="510" rx="48" fill="#fff" filter="url(#brush)"/>
+<rect x="80.5" y="18.5" width="439" height="509" rx="48" fill="none" stroke="{EDGE}" stroke-opacity=".5"/>
+<rect x="262" y="46" width="76" height="8" rx="4" fill="{EDGE}" opacity=".6"/>
+
+<!-- hinge, with the new-mail LED -->
+<rect x="104" y="516" width="392" height="44" rx="20" fill="url(#hinge)" stroke="{EDGE}" stroke-opacity=".5"/>
+<circle class="led" cx="300" cy="538" r="7" fill="{HOLD}"/>
+
+<!-- screen -->
+<rect x="{sx-14}" y="{sy-14}" width="{sw+28}" height="{sh+28}" rx="16" fill="#1D2228"/>
+<g clip-path="url(#scr)">
+  <rect x="{sx}" y="{sy}" width="{sw}" height="{sh}" fill="#FBFCFE"/>
+  <rect x="{sx}" y="{sy}" width="{sw}" height="30" fill="#E6ECF4"/>
+  <g fill="#14253F">
+    <rect x="{sx+12}" y="{sy+19}" width="4" height="5"/><rect x="{sx+19}" y="{sy+15}" width="4" height="9"/>
+    <rect x="{sx+26}" y="{sy+11}" width="4" height="13"/><rect x="{sx+33}" y="{sy+7}" width="4" height="17"/>
+    <rect x="{sx+sw-44}" y="{sy+8}" width="26" height="14" fill="none" stroke="#14253F" stroke-width="2"/>
+    <rect x="{sx+sw-18}" y="{sy+12}" width="3" height="6"/>
+    <rect x="{sx+sw-41}" y="{sy+11}" width="6" height="8"/><rect x="{sx+sw-33}" y="{sy+11}" width="6" height="8"/>
+  </g>
+  <text class="f-lcd" x="{sx+sw/2}" y="{sy+22}" font-size="18" fill="#14253F" text-anchor="middle">17:08</text>
+  <rect x="{sx}" y="{sy+30}" width="{sw}" height="42" fill="url(#bar)"/>
+  <text class="f-lcd" x="{sx+16}" y="{sy+59}" font-size="22" fill="#fff">受信BOX</text>
+  <text class="f-lcd" x="{sx+sw-16}" y="{sy+59}" font-size="18" fill="#fff" opacity=".85" text-anchor="end">3件</text>
+  {"".join(entries)}
+  <rect x="{sx}" y="{sy+sh-34}" width="{sw}" height="34" fill="#DDE4EC"/>
+  <text class="f-lcd" x="{sx+16}" y="{sy+sh-11}" font-size="17" fill="#14253F">戻る</text>
+  <text class="f-lcd" x="{sx+sw/2}" y="{sy+sh-11}" font-size="17" fill="#14253F" text-anchor="middle">選択</text>
+  <text class="f-lcd" x="{sx+sw-16}" y="{sy+sh-11}" font-size="17" fill="#14253F" text-anchor="end">返信</text>
+  <rect x="{sx}" y="{sy}" width="{sw}" height="{sh}" fill="url(#glass)"/>
 </g>
-<path d="{shell}" fill="url(#hl)"/>
-<path d="{shell}" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="1.5"/>
-<path d="M62 36 H497 L563 102" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2"/>
 
-<!-- label sticker -->
-<rect x="74" y="62" width="452" height="408" rx="6" fill="#FBFBF8"/>
-<rect x="74" y="62" width="452" height="408" rx="6" fill="none" stroke="#000" stroke-opacity=".12"/>
-<rect x="74" y="62" width="452" height="52" rx="6" fill="{c}"/>
-<rect x="74" y="100" width="452" height="14" fill="{c}"/>
-<text class="f-silk" x="96" y="98" font-size="24" letter-spacing="4" fill="#fff">TRACK {p["no"]}</text>
-<text class="f-silk" x="504" y="98" font-size="24" letter-spacing="4" fill="#fff" text-anchor="end" opacity=".85">MD 80</text>
-
-<text class="f-silk" x="94" y="190" font-size="76" fill="{INK}">{esc(p["name"])}</text>
-
-<!-- label-printer tape, slightly crooked -->
-<g transform="rotate(-1.6 96 230)">
-  <rect x="94" y="214" width="{tape_w}" height="40" rx="2" fill="#16191D"/>
-  <text class="f-lcd" x="111" y="242" font-size="24" fill="#F5F5F0">{esc(p["tape"])}</text>
+<!-- nav cluster -->
+<g>
+  <rect x="116" y="590" width="96" height="40" rx="20" fill="url(#key)" stroke="{EDGE}" stroke-opacity=".45"/>
+  <rect x="388" y="590" width="96" height="40" rx="20" fill="url(#key)" stroke="{EDGE}" stroke-opacity=".45"/>
+  <g transform="translate(150 600)"><rect width="28" height="20" fill="none" stroke="{INK}" stroke-width="2.5"/><path d="M1 1 L14 11 L27 1" fill="none" stroke="{INK}" stroke-width="2.5"/></g>
+  <text class="f-silk" x="436" y="619" font-size="24" fill="{INK}" text-anchor="middle">i</text>
+  <circle cx="300" cy="652" r="62" fill="url(#key)" stroke="{EDGE}" stroke-opacity=".45"/>
+  <g fill="{INK}" opacity=".55">
+    <path d="M300 600 l-8 10 h16 z"/><path d="M300 704 l-8 -10 h16 z"/>
+    <path d="M248 652 l10 -8 v16 z"/><path d="M352 652 l-10 -8 v16 z"/>
+  </g>
+  <circle cx="300" cy="652" r="28" fill="url(#pearl)" stroke="{EDGE}" stroke-opacity=".5"/>
+  <text class="f-lcd" x="300" y="660" font-size="18" fill="{INK}" text-anchor="middle">決定</text>
+  <rect x="116" y="660" width="96" height="40" rx="20" fill="url(#key)" stroke="{EDGE}" stroke-opacity=".45"/>
+  <rect x="388" y="660" width="96" height="40" rx="20" fill="url(#key)" stroke="{EDGE}" stroke-opacity=".45"/>
+  <rect x="146" y="676" width="36" height="8" rx="4" fill="#2F9B57"/>
+  <rect x="418" y="676" width="36" height="8" rx="4" fill="#D2463C"/>
 </g>
-
-{rules}
-{desc_svg}
-<text class="f-body" x="96" y="452" font-size="22" fill="{INK}" opacity=".55">{esc(p["cast"])}</text>
-
-<!-- metal shutter -->
-<rect x="150" y="486" width="300" height="108" rx="4" fill="url(#shut)"/>
-<rect x="150" y="486" width="300" height="108" rx="4" fill="#fff" filter="url(#brush)"/>
-<rect x="150.5" y="486.5" width="299" height="107" rx="4" fill="none" stroke="#000" stroke-opacity=".3"/>
-<rect x="150" y="486" width="300" height="3" fill="#fff" opacity=".9"/>
-<text class="f-silk" x="300" y="550" font-size="21" letter-spacing="1.5" fill="{INK}" opacity=".6" text-anchor="middle">{esc(p["shutter"])}</text>
-<path d="M286 570 l14 -10 l14 10" fill="none" stroke="{INK}" stroke-opacity=".45" stroke-width="2.5"/>
+{"".join(keys)}
 """
-    finish(f"md-{p['slug']}.svg", W, H, f"Track {p['no']}: {p['name']}. {p['desc']}", body)
+    css = "@keyframes led{0%,60%{opacity:1}70%,100%{opacity:.15}}.led{animation:led 1.6s steps(1) infinite}"
+    alt = "A flip phone inbox with three messages. " + " ".join(f'{w}: "{m}".' for w, m in MAIL)
+    finish("inbox.svg", W, H, alt, body, css)
 
 
 # ── spec sticker ───────────────────────────────────────────────────────────
@@ -471,9 +587,8 @@ def spec():
 <text class="f-silk" x="930" y="92" font-size="26" letter-spacing="3" fill="{INK}">MADE IN INDIA</text>
 <text class="f-silk" x="930" y="126" font-size="26" letter-spacing="3" fill="{INK}">ASSEMBLED IN TOKYO</text>
 <text class="f-lcd" x="930" y="170" font-size="22" fill="{INK}" opacity=".7">インド製　東京で組立</text>
-<text class="f-body" x="930" y="228" font-size="19" fill="{INK}" opacity=".7">JNU, Japanese literature</text>
-<text class="f-body" x="930" y="256" font-size="19" fill="{INK}" opacity=".7">IIT Madras, data science</text>
-<text class="f-body" x="930" y="284" font-size="19" fill="{INK}" opacity=".7">MEXT scholar</text>
+<text class="f-body" x="930" y="228" font-size="19" fill="{INK}" opacity=".7">Batteries not included.</text>
+<text class="f-body" x="930" y="256" font-size="19" fill="{INK}" opacity=".7">Coffee required.</text>
 {"".join(bars)}
 <text class="f-lcd" x="930" y="{H-52}" font-size="17" fill="{INK}" opacity=".75" letter-spacing="3">S/N SARTHAK-SAMA</text>
 """
@@ -529,8 +644,8 @@ def buttons():
 if __name__ == "__main__":
     os.makedirs(ASSETS, exist_ok=True)
     hero()
-    for p in PROJECTS:
-        cartridge(p)
+    receipt()
+    keitai()
     spec()
     next_up()
     buttons()

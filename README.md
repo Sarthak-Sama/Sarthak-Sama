@@ -8,22 +8,33 @@
 
 <br>
 
-I'm a full-stack engineer in Tokyo. I moved here from India on a MEXT scholarship, after studying Japanese literature at JNU and data science at IIT Madras. I got into IIM and turned it down to come here.
+Hi, I'm Sarthak. Most of the internet knows me as Yato.
 
-I build tools for developers, and for people learning Japanese or finding their way to Japan. Right now that means **[Antideploy](https://antideploy.com)**, a deploy platform built for coding agents.
+I'm a full-stack engineer in Tokyo, and frontend is where I lose all sense of proportion. If your button is two pixels off, I have already noticed, and I am trying very hard to be normal about it.
+
+I came to Japan from India on a MEXT scholarship. Before that I studied Japanese literature at JNU, so I can read Sōseki in the original and still get lost inside Shinjuku station. I'm also finishing a data science degree at IIT Madras, so I can now write keigo and pandas, sometimes in the same afternoon. I also got into IIM and turned it down, which my relatives are still processing.
 
 <br>
 
 <p align="center">
-  <a href="https://antideploy.com"><img src="./assets/md-antideploy.svg" alt="Track 01, Antideploy: a deploy platform built for coding agents" width="32%"></a>
-  <a href="https://github.com/Sarthak-Sama/matchi"><img src="./assets/md-matchi.svg" alt="Track 02, Matchi: scores 937 Tokyo neighborhoods against your commute, budget and lifestyle" width="32%"></a>
-  <a href="https://github.com/Sarthak-Sama/Yomimori"><img src="./assets/md-yomimori.svg" alt="Track 03, Yomimori: AI-written Japanese stories at your JLPT level" width="32%"></a>
-  <a href="https://github.com/Sarthak-Sama/japanauts"><img src="./assets/md-japanouts.svg" alt="Track 04, JapanOuts: a Japanese learning companion" width="32%"></a>
-  <a href="https://github.com/Sarthak-Sama/CodeHours"><img src="./assets/md-codehours.svg" alt="Track 05, CodeHours: tracks your coding time" width="32%"></a>
-  <img src="./assets/md-liveshot.svg" alt="Track 06, Liveshot: a screenshot backed by a preserved sandbox" width="32%">
+  <img src="./assets/receipt.svg" alt="Receipt from Yato Mart listing: BA Japanese literature at JNU, BSc data science at IIT Madras, Japanese course at Bunka Institute, frontend developer at Tryp.com, full-stack intern at Digital Palmy, MEXT scholarship, IIM admission returned. Subtotal: one engineer, paid in coffee." width="46%">
+  &nbsp;
+  <img src="./assets/inbox.svg" alt="A flip phone inbox with three testimonials from people I've worked with" width="46%">
 </p>
 
-<p align="center"><sub>Matchi has a <a href="https://matchi-web-ten.vercel.app">live demo</a>. Bonus track: <b>Hackvatar</b>, an AI avatar negotiation sim in polite business Japanese, took 2nd place at Hackvatar Tokyo.</sub></p>
+<br>
+
+### What I like building
+
+**Tools for developers.** Right now that's [**Antideploy**](https://antideploy.com), a deploy platform for coding agents. The agents write the code. Somebody still has to ship it.
+
+**Things that make Japan less confusing.** Japan runs on paperwork, and I'm working on it. [Career Konbini](https://github.com/Sarthak-Sama/career-combini) puts jobs, scholarships and Japanese-format documents on one shelf. [Matchi](https://matchi-web-ten.vercel.app) ranks 937 Tokyo neighborhoods by your commute, budget and lifestyle, so you can pick one before you've signed a two-year lease. [Yomimori](https://github.com/Sarthak-Sama/Yomimori) writes Japanese stories at your JLPT level, with furigana.
+
+**Interfaces that feel good to touch.** At [Tryp.com](https://tryp.com) I owned the frontend of the travel marketplace: the cart, the promo codes, a holiday-package filter with more interdependent rules than a Tokyo garbage calendar, and offline bookings for the moment your hotel confirmation matters and your signal doesn't. About 400K people a month used it.
+
+**Anything with a deadline.** I once built an AI that negotiates in polite business Japanese, the hardest boss in any language. It took 2nd place at Hackvatar Tokyo.
+
+Off the keyboard I'm a man of a hundred hobbies. The latest one is skateboarding, and Tokyo's pavements have been very patient with me.
 
 <br>
 
