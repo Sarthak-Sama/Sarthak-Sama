@@ -1,494 +1,479 @@
-"""Builds the PNGs in ../assets for the profile README.
+"""Builds the PNG posters in ../assets for the profile README.
 
-Concept: the Saklani Engineering Consultations office, told through Japanese
-office paperwork. Lavender bathroom tile (as in the avatar), a business card
-with a hanko, a hand-filled rirekisho, restaurant menu tags for projects,
-speech-bubble reviews and an 営業中 shop sign.
+Look: newsprint zine: cream paper, black ink, indigo spot colour. Public-domain ukiyo-e prints (Kuniyoshi,
+Hokusai) pushed through a halftone screen, blackletter and Mincho type,
+NFO-style release boxes, grain, dust and fold creases.
 
 Run:  python3 tools/build.py      (needs `pip install pillow numpy`)
-Fonts (OFL) are downloaded into tools/.cache on first run.
-Everything is drawn at 2x and downsampled for clean edges.
+Fonts (OFL) and source prints (public domain, Wikimedia Commons) are
+downloaded into tools/.cache on first run.
 """
 
+import json
 import math
 import os
 import random
+import urllib.parse
 import urllib.request
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS = os.path.join(ROOT, "assets")
 CACHE = os.path.join(ROOT, "tools", ".cache")
-K = 2  # supersampling factor
+UA = {"User-Agent": "readme-builder/1.0"}
 
 FONTS = {
-    "gothic-black": "ofl/zenkakugothicnew/ZenKakuGothicNew-Black.ttf",
-    "gothic-bold": "ofl/zenkakugothicnew/ZenKakuGothicNew-Bold.ttf",
-    "gothic": "ofl/zenkakugothicnew/ZenKakuGothicNew-Medium.ttf",
-    "mincho": "ofl/zenoldmincho/ZenOldMincho-Bold.ttf",
-    "hand": "ofl/kleeone/KleeOne-SemiBold.ttf",
-    "brush": "ofl/yujisyuku/YujiSyuku-Regular.ttf",
+    "black": "ofl/grenzegotisch/GrenzeGotisch%5Bwght%5D.ttf",
+    "vt": "ofl/vt323/VT323-Regular.ttf",
+    "mincho": "ofl/zenoldmincho/ZenOldMincho-Black.ttf",
+    "anton": "ofl/anton/Anton-Regular.ttf",
+    "dela": "ofl/delagothicone/DelaGothicOne-Regular.ttf",
 }
 
-TILE = (217, 206, 213)
-GROUT = (194, 181, 190)
-INK = (28, 26, 31)
-GREY = (104, 99, 110)
-PAPER = (251, 248, 241)
-HANKO = (211, 58, 44)
-PINK = (230, 49, 125)
-HILITE = (255, 120, 180)
-PEN = (36, 48, 94)
-WOOD = (226, 196, 154)
-WOOD_DK = (190, 156, 112)
+PRINTS = {
+    "skeleton": "File:Takiyasha the Witch and the Skeleton Spectre, by Utagawa Kuniyoshi.jpg",
+    "wave": "File:Tsunami by hokusai 19th century.jpg",
+    "tiger": "File:Kuniyoshi Utagawa, Tiger.jpg",
+    "fuji": "File:Lightnings below the summit.jpg",
+    "ghost": "File:Kuniyoshi Utagawa, The ghost of Taira Tomomori, Daimotsu bay.jpg",
+}
 
-random.seed(4)
-np.random.seed(4)
-_font_cache = {}
+PAPER = (237, 230, 214)
+INK = (20, 20, 20)
+INDIGO = (46, 58, 110)
+TINT = (218, 209, 190)
+ASH = (110, 103, 92)
+
+random.seed(21)
+np.random.seed(21)
+
+
+# ── fetching ───────────────────────────────────────────────────────────────
+def fetch(url, path):
+    if not os.path.exists(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        print("downloading", url)
+        req = urllib.request.Request(url, headers=UA)
+        with urllib.request.urlopen(req) as r, open(path, "wb") as f:
+            f.write(r.read())
+    return path
 
 
 def font(key, size):
-    k = (key, size)
-    if k not in _font_cache:
-        path = os.path.join(CACHE, os.path.basename(FONTS[key]))
-        if not os.path.exists(path):
-            os.makedirs(CACHE, exist_ok=True)
-            url = "https://github.com/google/fonts/raw/main/" + FONTS[key]
-            print("downloading", url)
-            req = urllib.request.Request(url, headers={"User-Agent": "readme-builder/1.0"})
-            with urllib.request.urlopen(req) as r, open(path, "wb") as f:
-                f.write(r.read())
-        _font_cache[k] = ImageFont.truetype(path, int(size * K))
-    return _font_cache[k]
+    path = os.path.join(CACHE, urllib.parse.unquote(os.path.basename(FONTS[key])).replace("[wght]", ""))
+    fetch("https://github.com/google/fonts/raw/main/" + FONTS[key], path)
+    f = ImageFont.truetype(path, size)
+    if key == "black":
+        f.set_variation_by_name("Black")
+    return f
 
 
-# ── drawing at 1x coordinates on a 2x canvas ───────────────────────────────
-class Pen:
-    def __init__(self, im):
-        self.im = im
-        self.d = ImageDraw.Draw(im)
+def source(key):
+    path = os.path.join(CACHE, key + ".jpg")
+    if not os.path.exists(path):
+        api = ("https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=url"
+               "&iiurlwidth=2200&format=json&titles=" + urllib.parse.quote(PRINTS[key]))
+        with urllib.request.urlopen(urllib.request.Request(api, headers=UA)) as r:
+            info = list(json.load(r)["query"]["pages"].values())[0]["imageinfo"][0]
+        fetch(info.get("thumburl", info["url"]), path)
+    return Image.open(path).convert("L")
 
-    def s(self, v):
-        if isinstance(v, (tuple, list)):
-            return [self.s(x) for x in v] if v and isinstance(v[0], (tuple, list)) else tuple(x * K for x in v)
-        return v * K
 
-    def rect(self, box, fill=None, outline=None, width=1, r=0):
-        if r:
-            self.d.rounded_rectangle(self.s(box), radius=r * K, fill=fill, outline=outline, width=int(width * K))
+# ── image treatments ───────────────────────────────────────────────────────
+def crop(key, box, size, invert=False, gamma=1.0, contrast=1.6):
+    """box is fractional (l, t, r, b). Returns float array 0..1 where 1 = ink."""
+    im = source(key)
+    w, h = im.size
+    im = im.crop((int(box[0] * w), int(box[1] * h), int(box[2] * w), int(box[3] * h)))
+    im = im.resize(size, Image.LANCZOS)
+    a = np.asarray(im, dtype=np.float32) / 255.0
+    if not invert:
+        a = 1.0 - a
+    lo, hi = np.percentile(a, 3), np.percentile(a, 97)
+    a = np.clip((a - lo) / max(hi - lo, 1e-3), 0, 1)
+    a = np.clip((a - 0.5) * contrast + 0.5, 0, 1) ** gamma
+    return a
+
+
+def halftone(a, cell=7.0, angle=45):
+    """Amplitude-modulated dot screen: returns a 0/255 mask."""
+    h, w = a.shape
+    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+    t = math.radians(angle)
+    u = x * math.cos(t) + y * math.sin(t)
+    v = -x * math.sin(t) + y * math.cos(t)
+    screen = 0.5 + 0.25 * (np.cos(2 * math.pi * u / cell) + np.cos(2 * math.pi * v / cell))
+    return Image.fromarray(((a > screen) * 255).astype(np.uint8))
+
+
+def dither(a, scale=3):
+    """Chunky Floyd-Steinberg dither, upscaled with hard pixels."""
+    h, w = a.shape
+    small = Image.fromarray((a * 255).astype(np.uint8)).resize((w // scale, h // scale), Image.LANCZOS)
+    return small.convert("1").convert("L").resize((w, h), Image.NEAREST)
+
+
+def ink(canvas, mask, color, at=(0, 0)):
+    layer = Image.new("RGB", mask.size, color)
+    canvas.paste(layer, at, mask)
+
+
+def noise_mask(size, density, blur=0.0, scale=1):
+    w, h = size
+    n = np.random.rand(h // scale + 1, w // scale + 1)
+    im = Image.fromarray((n * 255).astype(np.uint8)).resize((w, h), Image.NEAREST if scale > 1 else Image.BILINEAR)
+    if blur:
+        im = im.filter(ImageFilter.GaussianBlur(blur))
+    return im.point(lambda p: 255 if p < density * 255 else 0)
+
+
+def distress(mask, amount=0.18):
+    """Eat random holes into a text/shape mask so it reads as worn print."""
+    holes = noise_mask(mask.size, amount, blur=1.2, scale=3)
+    holes = holes.point(lambda p: 0 if p > 0 else 255)
+    return ImageChops.multiply(mask, holes)
+
+
+def grime(canvas, creases=True):
+    """Grain, dust, scratches and fold lines over the whole poster."""
+    w, h = canvas.size
+    grain = (np.random.rand(h, w) * 22 - 11).astype(np.int16)
+    arr = np.asarray(canvas).astype(np.int16) + grain[..., None]
+    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
+    d = ImageDraw.Draw(out)
+    for _ in range(int(w * h / 9000)):
+        x, y = random.randrange(w), random.randrange(h)
+        r = random.choice([0.6, 0.8, 1, 1, 1.5, 2.2])
+        c = random.choice([ASH, (90, 84, 76)])
+        d.ellipse((x - r, y - r, x + r, y + r), fill=c)
+    for _ in range(8):
+        x = random.randrange(w)
+        d.line((x, random.randrange(h), x + random.randint(-30, 30), random.randrange(h)), fill=(196, 186, 168), width=1)
+    if creases:
+        for line in ((w * 0.5, 0, w * 0.5 + 4, h), (0, h * 0.5, w, h * 0.5 - 3)):
+            band = Image.new("L", (w, h), 0)
+            ImageDraw.Draw(band).line(line, fill=90, width=3)
+            band = band.filter(ImageFilter.GaussianBlur(2.5))
+            out.paste(Image.new("RGB", (w, h), (150, 138, 118)), (0, 0), band.point(lambda p: p // 3))
+    return out
+
+
+# ── type helpers ───────────────────────────────────────────────────────────
+def text_mask(size, xy, s, f, anchor="la"):
+    m = Image.new("L", size, 0)
+    ImageDraw.Draw(m).text(xy, s, font=f, fill=255, anchor=anchor)
+    return m
+
+
+def vertical(size, x, y, s, f, step=None):
+    """Top-to-bottom Japanese, one glyph per line, centred on x."""
+    m = Image.new("L", size, 0)
+    d = ImageDraw.Draw(m)
+    step = step or f.size * 1.08
+    for i, ch in enumerate(s):
+        cy = y + i * step + step / 2
+        if ch in "、。":
+            d.text((x + f.size * 0.3, cy - f.size * 0.3), ch, font=f, fill=255, anchor="mm")
+        elif ch == "・":
+            d.text((x, cy), "・", font=f, fill=255, anchor="mm")
         else:
-            self.d.rectangle(self.s(box), fill=fill, outline=outline, width=int(width * K))
-
-    def line(self, pts, fill=INK, width=1):
-        self.d.line(self.s(pts), fill=fill, width=int(width * K), joint="curve")
-
-    def ellipse(self, box, fill=None, outline=None, width=1):
-        self.d.ellipse(self.s(box), fill=fill, outline=outline, width=int(width * K))
-
-    def poly(self, pts, fill=None):
-        self.d.polygon(self.s(pts), fill=fill)
-
-    def text(self, xy, s, f, fill=INK, anchor="la", spacing=0):
-        if spacing:
-            x, y = xy
-            total = sum(self.d.textlength(c, font=f) / K + spacing for c in s) - spacing
-            if anchor[0] == "m":
-                x -= total / 2
-            elif anchor[0] == "r":
-                x -= total
-            for c in s:
-                self.d.text((x * K, y * K), c, font=f, fill=fill, anchor="l" + anchor[1])
-                x += self.d.textlength(c, font=f) / K + spacing
-            return
-        self.d.text(self.s(xy), s, font=f, fill=fill, anchor=anchor)
-
-    def width(self, s, f):
-        return self.d.textlength(s, font=f) / K
-
-    def vertical(self, x, y, s, f, fill=INK, step=None):
-        step = step or f.size / K * 1.05
-        for i, ch in enumerate(s):
-            cy = y + i * step + step / 2
-            if ch in "、。":
-                self.text((x + f.size / K * 0.3, cy - f.size / K * 0.3), ch, f, fill, "mm")
-            elif ch in "ー〜":
-                g = Image.new("RGBA", (f.size * 2, f.size * 2), (0, 0, 0, 0))
-                ImageDraw.Draw(g).text((f.size, f.size), ch, font=f, fill=fill, anchor="mm")
-                g = g.rotate(-90)
-                self.im.paste(g, (int(x * K - f.size), int(cy * K - f.size)), g)
-            else:
-                self.text((x, cy), ch, f, fill, "mm")
-        return y + len(s) * step
-
-    def wrap(self, s, f, w):
-        out = []
-        for para in s.split("\n"):
-            line = ""
-            for word in para.split(" "):
-                t = f"{line} {word}".strip()
-                if self.width(t, f) > w and line:
-                    out.append(line)
-                    line = word
-                else:
-                    line = t
-            out.append(line)
-        return out
+            d.text((x, cy), ch, font=f, fill=255, anchor="mm")
+    return m
 
 
-def canvas(w, h, bg=TILE):
-    return Image.new("RGB", (w * K, h * K), bg)
+def misprint(canvas, mask, fg, shadow=INDIGO, off=(6, 4), worn=0.16):
+    """Two-colour print with slight misregistration."""
+    m = distress(mask, worn)
+    ink(canvas, ImageChops.offset(m, *off), shadow)
+    ink(canvas, m, fg)
 
 
-def tiles(im, size=84, offset=(0, 0)):
-    p = Pen(im)
-    w, h = im.size[0] // K, im.size[1] // K
-    ox, oy = offset
-    xs = range(-size + ox % size, w + size, size)
-    ys = range(-size + oy % size, h + size, size)
-    hl = Image.new("L", im.size, 0)
-    hd = ImageDraw.Draw(hl)
-    for x in xs:
-        for y in ys:
-            hd.line(((x + 10) * K, (y + 9) * K, (x + size - 24) * K, (y + 9) * K), fill=70, width=3 * K)
-    im.paste(Image.new("RGB", im.size, (240, 233, 238)), (0, 0), hl)
-    for x in xs:
-        p.line(((x, 0), (x, h)), GROUT, 3)
-    for y in ys:
-        p.line(((0, y), (w, y)), GROUT, 3)
+def frame(d, w, h, inset=22, color=ASH):
+    d.rectangle((inset, inset, w - inset, h - inset), outline=color, width=2)
+    t = 18
+    for cx, cy, sx, sy in ((inset, inset, 1, 1), (w - inset, inset, -1, 1), (inset, h - inset, 1, -1), (w - inset, h - inset, -1, -1)):
+        d.line((cx - sx * 10, cy, cx + sx * t, cy), fill=INK, width=4)
+        d.line((cx, cy - sy * 10, cx, cy + sy * t), fill=INK, width=4)
 
 
-def shadow(im, box_or_mask, offset=(10, 14), blur=14, alpha=90, r=0):
-    if isinstance(box_or_mask, Image.Image):
-        m = box_or_mask
-    else:
-        m = Image.new("L", im.size, 0)
-        ImageDraw.Draw(m).rounded_rectangle([v * K for v in box_or_mask], radius=r * K, fill=255)
-    m = m.transform(m.size, Image.AFFINE, (1, 0, -offset[0] * K, 0, 1, -offset[1] * K))
-    m = m.filter(ImageFilter.GaussianBlur(blur * K)).point(lambda v: v * alpha // 255)
-    im.paste(Image.new("RGB", im.size, (60, 44, 58)), (0, 0), m)
-
-
-def paste_rotated(im, layer, center, angle, cast=True):
-    """layer is RGBA at 2x; pasted with its centre at `center` (1x) after rotation."""
-    rot = layer.rotate(angle, resample=Image.BICUBIC, expand=True)
-    x = int(center[0] * K - rot.width / 2)
-    y = int(center[1] * K - rot.height / 2)
-    if cast:
-        m = Image.new("L", im.size, 0)
-        m.paste(rot.split()[3], (x, y))
-        shadow(im, m, offset=(8, 12), blur=12, alpha=110)
-    im.paste(rot, (x, y), rot)
-
-
-def hanko(text, r=46, angle=-8, color=HANKO):
-    """A worn round seal with vertical text."""
-    S = int((r * 2 + 20) * K)
-    layer = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-    p = Pen(layer)
-    c = S / K / 2
-    p.ellipse((c - r, c - r, c + r, c + r), outline=color, width=5)
-    f = font("mincho", r * 0.78)
-    step = r * 0.82
-    p.vertical(c, c - step * len(text) / 2, text, f, color, step=step)
-    a = np.array(layer.split()[3]).astype(np.float32)
-    a[np.random.rand(*a.shape) < 0.16] *= 0.25
-    layer.putalpha(Image.fromarray(a.astype(np.uint8)))
-    return layer.rotate(angle, resample=Image.BICUBIC)
-
-
-def sunglasses(p, cx, cy, s=1.0, color=INK):
-    w, h = 34 * s, 20 * s
-    p.ellipse((cx - w - 4 * s, cy - h / 2, cx - 4 * s, cy + h / 2), fill=color)
-    p.ellipse((cx + 4 * s, cy - h / 2, cx + w + 4 * s, cy + h / 2), fill=color)
-    p.line(((cx - 6 * s, cy - 3 * s), (cx + 6 * s, cy - 3 * s)), color, 3 * s)
-    p.line(((cx - w - 2 * s, cy - 4 * s), (cx - w - 16 * s, cy - 8 * s)), color, 3 * s)
-    p.line(((cx + w + 2 * s, cy - 4 * s), (cx + w + 16 * s, cy - 8 * s)), color, 3 * s)
-    p.ellipse((cx - w + 4 * s, cy - h / 2 + 4 * s, cx - w + 12 * s, cy - h / 2 + 9 * s), fill=(120, 116, 128))
-    p.ellipse((cx + 12 * s, cy - h / 2 + 4 * s, cx + 20 * s, cy - h / 2 + 9 * s), fill=(120, 116, 128))
-
-
-def highlight(im, x, y, w, h=22):
-    hl = Image.new("RGBA", (int(w * K), int(h * K)), HILITE + (115,))
-    im.paste(hl, (int(x * K), int(y * K)), hl)
+def barcode(d, x, y, h, color=INK, n=34):
+    rnd = random.Random(7)
+    for _ in range(n):
+        w = rnd.choice([1, 1, 2, 3, 4])
+        d.rectangle((x, y, x + w, y + h), fill=color)
+        x += w + rnd.choice([2, 2, 3, 4])
+    return x
 
 
 def save(im, name):
-    out = im.resize((im.width // K, im.height // K), Image.LANCZOS)
     path = os.path.join(ASSETS, name)
-    out.save(path, optimize=True)
-    print(f"{name:22s} {os.path.getsize(path)/1024:7.1f} KB")
+    im.convert("RGB").quantize(colors=96, method=Image.MEDIANCUT, dither=Image.NONE).save(path, optimize=True)
+    print(f"{name:24s} {os.path.getsize(path)/1024:7.1f} KB")
 
 
-# ── hero: the business card ────────────────────────────────────────────────
-def hero():
-    W, H = 1280, 640
-    im = canvas(W, H)
-    tiles(im, offset=(30, 10))
-
-    p = Pen(im)
-    p.ellipse((1040, 470, 1180, 610), outline=(176, 140, 120), width=7)
-    p.ellipse((1046, 478, 1176, 604), outline=(196, 166, 150), width=2)
-
-    CW, CH = 780, 450
-    card = Image.new("RGBA", (CW * K, CH * K), PAPER + (255,))
-    c = Pen(card)
-    c.text((48, 46), "サクラニ技術相談所", font("mincho", 24))
-    c.text((48, 82), "SAKLANI ENGINEERING CONSULTATIONS", font("gothic-bold", 13), GREY, spacing=2.4)
-    sunglasses(c, 690, 66, 0.9)
-    c.line(((48, 114), (CW - 48, 114)), INK, 1.5)
-
-    c.text((52, 166), "サルタク・サクラニ", font("gothic", 18), GREY, spacing=3)
-    c.text((46, 248), "Sarthak Saklani", font("gothic-black", 70), INK, "ls")
-    c.text((50, 294), "Full-Stack Engineer", font("gothic-bold", 26), INK)
-    c.text((50, 330), "Certified button aligner (self-certified)", font("gothic", 18), GREY)
-
-    rows = (("Web", "sarthak.space"), ("X", "@Sarthak_Sama"), ("Office", "Tokyo (location varies)"))
-    for i, (k, v) in enumerate(rows):
-        y = 378 + i * 24
-        c.text((50, y), k, font("gothic-bold", 15), GREY)
-        c.text((122, y), v, font("gothic", 15), INK)
-    stamp = hanko("やと", r=50, angle=-12)
-    card.paste(stamp, (int(600 * K), int(250 * K)), stamp)
-
-    paste_rotated(im, card, (590, 336), 2.2)
-
-    NW, NH = 250, 220
-    note = Image.new("RGBA", (NW * K, NH * K), (249, 198, 218, 255))
-    n = Pen(note)
-    n.rect((0, 0, NW, 26), fill=(240, 176, 202))
-    for i, l in enumerate(["memo:", "hobby no.100 is", "skateboarding.", "it is going about", "as well as you'd", "think."]):
-        n.text((20, 44 + i * 27), l, font("hand", 21), PEN)
-    paste_rotated(im, note, (1070, 160), -7)
-    tape = Image.new("RGBA", (110 * K, 34 * K), (255, 255, 255, 130)).rotate(-14, expand=True, resample=Image.BICUBIC)
-    im.paste(tape, (int(1010 * K), int(36 * K)), tape)
-    save(im, "hero.png")
+def text_wall(canvas, line, f, color, line_h, shift=0.37):
+    d = ImageDraw.Draw(canvas)
+    w, h = canvas.size
+    unit = d.textlength(line, font=f)
+    for i, y in enumerate(range(-4, h, line_h)):
+        x = -unit * ((i * shift) % 1)
+        while x < w:
+            d.text((x, y), line, font=f, fill=color)
+            x += unit
 
 
-# ── rirekisho ─────────────────────────────────────────────────────────────
-def rirekisho():
-    W, H = 1280, 920
-    im = canvas(W, H)
-    tiles(im, offset=(50, 40))
-    shadow(im, (40, 40, 1240, 880), offset=(10, 14), blur=14, alpha=110)
-    p = Pen(im)
-    p.rect((40, 40, 1240, 880), fill=PAPER)
-    p.line(((640, 40), (640, 880)), (220, 214, 204), 2)
-
-    L = font("mincho", 15)
-    hand = font("hand", 21)
-    hand_s = font("hand", 18)
-    line_c = (70, 64, 74)
-
-    x0, x1 = 72, 612
-    p.text((x0, 62), "履 歴 書", font("mincho", 40))
-    p.text((x0 + 200, 84), "rirekisho, the Japanese résumé", font("gothic", 14), GREY)
-    p.text((470, 120), "2026年 11月 26日現在", font("mincho", 14), INK, "ra")
-
-    p.rect((x0, 146, 470, 330), outline=line_c, width=2)
-    for y in (180, 260, 296):
-        p.line(((x0, y), (470, y)), line_c, 1)
-    p.text((x0 + 10, 156), "ふりがな", L)
-    p.text((x0 + 100, 152), "さるたく　さくらに", hand, PEN)
-    p.text((x0 + 10, 192), "氏名", L)
-    p.text((x0 + 56, 242), "Sarthak Saklani", font("hand", 34), PEN, "ls")
-    p.text((x0 + 10, 270), "通称", L)
-    p.text((x0 + 70, 266), "Yato (most of the internet)", hand, PEN)
-    p.text((x0 + 10, 306), "現住所", L)
-    p.text((x0 + 80, 302), "東京都渋谷区  Shibuya, Tokyo", hand, PEN)
-    p.text((452, 190), "印", L, GREY)
-    st = hanko("やと", r=24, angle=8)
-    im.paste(st, (int(408 * K), int(198 * K)), st)
-
-    p.rect((492, 146, 612, 306), outline=line_c, width=2)
-    sunglasses(p, 552, 210, 0.95)
-    p.text((552, 258), "photo pending", font("hand", 14), GREY, "mm")
-    p.text((552, 278), "(he's busy)", font("hand", 14), GREY, "mm")
-
-    rows = [
-        ("", "", "学歴  education", "c"),
-        ("2026", "6", "JNU, BA Japanese Language & Literature  卒業", ""),
-        ("2027", "4", "Bunka Institute of Language, Tokyo  (予定)", ""),
-        ("2027", "9", "IIT Madras, BSc Data Science  (予定)", ""),
-        ("", "", "IIM  合格 → 辞退  (got in, said no)", "hi"),
-        ("", "", "職歴  work", "c"),
-        ("2025", "2", "Digital Palmy, Full-Stack Intern", ""),
-        ("2025", "8", "Tryp.com, Frontend Developer", ""),
-        ("2026", "7", "Tryp.com  退職 (shipped it, left)", ""),
-        ("", "", "以上", "r"),
-    ]
-    ty, rh = 356, 48
-    bottom = ty + 34 + rh * len(rows)
-    p.rect((x0, ty, x1, bottom), outline=line_c, width=2)
-    p.line(((x0, ty + 34), (x1, ty + 34)), line_c, 1.5)
-    p.line(((x0 + 70, ty), (x0 + 70, bottom)), line_c, 1)
-    p.line(((x0 + 110, ty), (x0 + 110, bottom)), line_c, 1)
-    p.text((x0 + 35, ty + 17), "年", L, INK, "mm")
-    p.text((x0 + 90, ty + 17), "月", L, INK, "mm")
-    p.text((x0 + 325, ty + 17), "学歴・職歴", L, INK, "mm")
-    for i, (y_, m_, t, kind) in enumerate(rows):
-        y = ty + 34 + i * rh
-        if i:
-            p.line(((x0, y), (x1, y)), (190, 184, 192), 1)
-        cy = y + rh / 2
-        if kind == "hi":
-            highlight(im, x0 + 118, cy - 10, p.width(t, hand_s) + 14, 22)
-        p.text((x0 + 35, cy), y_, hand_s, PEN, "mm")
-        p.text((x0 + 90, cy), m_, hand_s, PEN, "mm")
-        if kind == "c":
-            p.text((x0 + 325, cy), t, hand_s, PEN, "mm")
-        elif kind == "r":
-            p.text((x1 - 20, cy), t, hand_s, PEN, "rm")
+def wrap(text, f, width, d):
+    words, lines, line = text.split(), [], ""
+    for w_ in words:
+        test = f"{line} {w_}".strip()
+        if d.textlength(test, font=f) > width and line:
+            lines.append(line)
+            line = w_
         else:
-            p.text((x0 + 124, cy), t, hand_s, PEN, "lm")
-
-    x0, x1 = 668, 1208
-
-    def box(y, h, label, body, size=20):
-        p.rect((x0, y, x1, y + h), outline=line_c, width=2)
-        p.line(((x0, y + 32), (x1, y + 32)), line_c, 1)
-        p.text((x0 + 12, y + 8), label, L)
-        f = font("hand", size)
-        for i, ln in enumerate(p.wrap(body, f, x1 - x0 - 32)):
-            p.text((x0 + 16, y + 44 + i * (size * 1.5)), ln, f, PEN)
-        return y + h + 18
-
-    y = 62
-    y = box(y, 196, "免許・資格  licences & qualifications",
-            "MEXT scholarship (文部科学省)\nHackvatar Tokyo, 2nd place: an AI that negotiates in polite business Japanese\nCan read Sōseki in the original. Still gets lost in Shinjuku station.", size=19)
-    y = box(y, 168, "志望動機  why me",
-            "I build tools for developers, and things that make Japan less confusing for people moving here. Frontend is where I lose all sense of proportion, in a good way.")
-    y = box(y, 150, "趣味・特技  hobbies & special skills",
-            "About a hundred hobbies. Currently skateboarding.\nSpecial skill: noticing a 2px misalignment from across the room.")
-    y = box(y, 190, "本人希望記入欄  personal requests",
-            "A full-stack role on a product team in Tokyo.\nCoffee. A desk, preferably.")
-    save(im, "rirekisho.png")
+            line = test
+    lines.append(line)
+    return lines
 
 
-# ── menu tags (projects) ──────────────────────────────────────────────────
-MENU = [
-    dict(slug="antideploy", jp="デプロイ", price="時価", name="Antideploy",
-         desc="Deploys for coding agents. They write it, someone has to ship it."),
-    dict(slug="konbini", jp="人生のコンビニ", price="二十四時間", name="Career Konbini",
-         desc="Jobs, scholarships and Japanese paperwork on one shelf."),
-    dict(slug="matchi", jp="街えらび", price="九三七種", name="Matchi",
-         desc="937 Tokyo neighborhoods, ranked by your commute and budget."),
-    dict(slug="yomimori", jp="読み物", price="全級", name="Yomimori",
-         desc="AI-written Japanese stories at your JLPT level."),
+# ── hero ───────────────────────────────────────────────────────────────────
+def hero():
+    W, H = 1280, 720
+    im = Image.new("RGB", (W, H), PAPER)
+    text_wall(im, "I CODE LIKE I'M RUNNING OUT OF TIME. ", font("vt", 30), TINT, 26)
+
+    # skeleton spectre, halftoned red
+    sk = crop("skeleton", (0.40, 0.0, 0.80, 0.80), (800, 760), invert=False, gamma=1.5, contrast=1.7)
+    ink(im, halftone(sk, cell=6.5, angle=38), INK, (470, -20))
+
+    d = ImageDraw.Draw(im)
+
+    # red column with vertical Mincho, Eva-style
+    d.rectangle((56, 56, 168, 664), fill=INDIGO)
+    col = vertical((W, H), 112, 74, "時間がないかのように書く", font("mincho", 46), step=49)
+    ink(im, distress(col, .1), PAPER)
+
+    # HUD box
+    vt = font("vt", 30)
+    d.rectangle((200, 56, 610, 196), fill=PAPER, outline=INDIGO, width=2)
+    d.rectangle((200, 56, 610, 86), fill=INDIGO)
+    d.text((405, 58), "WELCOME", font=vt, fill=PAPER, anchor="ma")
+    for i, (k, v) in enumerate((("USER", "YATO"), ("LOCATION", "TOKYO, JP"), ("CLASS", "FULL-STACK ENGINEER"))):
+        d.text((216, 92 + i * 32), k + ":", font=vt, fill=INDIGO)
+        d.text((596, 92 + i * 32), v, font=vt, fill=INK, anchor="ra")
+
+    # name
+    bl = font("black", 168)
+    name = Image.new("L", (W, H), 0)
+    nd = ImageDraw.Draw(name)
+    nd.text((196, 360), "Sarthak", font=bl, fill=255, anchor="ls")
+    nd.text((262, 530), "Saklani", font=bl, fill=255, anchor="ls")
+    # black knockout so the name sits on top of the dots
+    ink(im, name.filter(ImageFilter.MaxFilter(13)), PAPER)
+    misprint(im, name, INK, INDIGO, off=(7, 5), worn=.14)
+
+    d = ImageDraw.Draw(im)
+    tag = "BUILDS FOR DEVELOPERS AND FOR PEOPLE MOVING TO JAPAN"
+    tw = d.textlength(tag, font=font("anton", 30))
+    d.rectangle((258, 556, 278 + tw, 600), fill=PAPER)
+    d.text((268, 560), tag, font=font("anton", 30), fill=INK)
+
+    # katakana name down the right edge
+    kat = vertical((W, H), 1222, 56, "サルタク・サクラニ", font("mincho", 34), step=38)
+    ink(im, kat.filter(ImageFilter.MaxFilter(9)), PAPER)
+    ink(im, kat, INDIGO)
+
+    # status box + barcode
+    d.rectangle((842, 596, 1188, 664), fill=PAPER, outline=INDIGO, width=2)
+    d.text((858, 600), "NOW SHIPPING:", font=vt, fill=INDIGO)
+    d.text((1174, 630), "ANTIDEPLOY", font=vt, fill=INK, anchor="ra")
+    barcode(d, 268, 610, 40)
+    d.text((268, 654), "INDIA >> TOKYO  //  MEXT", font=font("vt", 22), fill=ASH)
+
+    frame(d, W, H)
+    save(grime(im), "hero.png")
+
+
+# ── section headers ────────────────────────────────────────────────────────
+def header(slug, title, jp):
+    W, H = 1280, 170
+    im = Image.new("RGB", (W, H), PAPER)
+    bl = font("black", 112)
+    misprint(im, text_mask((W, H), (40, 128), title, bl, anchor="ls"), INK, INDIGO, off=(6, 4), worn=.12)
+    d = ImageDraw.Draw(im)
+    tw = d.textlength(title, font=bl)
+    d.line((40 + tw + 30, 104, W - 230, 104), fill=INDIGO, width=3)
+    d.text((W - 40, 104), jp, font=font("mincho", 40), fill=INDIGO, anchor="rm")
+    save(grime(im, creases=False), f"h-{slug}.png")
+
+
+# ── tiger plate (floats beside the bio) ────────────────────────────────────
+def tiger():
+    W, H = 600, 940
+    im = Image.new("RGB", (W, H), PAPER)
+    a = crop("tiger", (0.02, 0.16, 0.98, 0.86), (560, 860), invert=False, gamma=1.2, contrast=1.7)
+    ink(im, halftone(a, cell=6, angle=22), INK, (20, 20))
+    d = ImageDraw.Draw(im)
+    d.rectangle((20, 20, W - 20, 880), outline=INK, width=2)
+    m = vertical((W, H), 520, 44, "虎", font("mincho", 120))
+    ink(im, m.filter(ImageFilter.MaxFilter(9)), PAPER)
+    misprint(im, m, INK, INDIGO, off=(5, 4), worn=.1)
+    d = ImageDraw.Draw(im)
+    d.text((24, 900), "FIG.1  UTAGAWA KUNIYOSHI, TIGER", font=font("vt", 26), fill=ASH)
+    save(grime(im, creases=False), "tiger.png")
+
+
+# ── NFO release information ────────────────────────────────────────────────
+def nfo():
+    W, H = 1280, 1190
+    vt = font("vt", 31)
+    rows_h = 46
+    im = Image.new("RGB", (W, H), PAPER)
+    d = ImageDraw.Draw(im)
+
+    # blocky ANSI-style logo: tiny render, checker shade, hard upscale
+    small = Image.new("L", (190, 60), 0)
+    ImageDraw.Draw(small).text((95, 32), "YATO", font=font("dela", 46), fill=255, anchor="mm")
+    logo = small.resize((760, 240), Image.NEAREST)
+    ink(im, ImageChops.offset(logo, 12, 12), TINT, (260, 20))
+    checker = Image.fromarray((((np.indices((240, 760)).sum(axis=0) // 4) % 2) * 255).astype(np.uint8))
+    ink(im, ImageChops.multiply(logo, checker), ASH, (260, 20))
+    ink(im, logo.filter(ImageFilter.MinFilter(9)), INK, (260, 20))
+    d.text((1022, 222), "TM", font=font("vt", 26), fill=INK)
+    d.text((640, 272), "y a t o   p r o d u c t i o n s", font=vt, fill=INDIGO, anchor="ma")
+
+    x0, x1 = 60, W - 60
+    y = 318
+    d.rectangle((x0, y, x1, H - 70), outline=ASH, width=2)
+    d.rectangle((x0 + 50, y + 18, x1 - 50, y + 66), outline=INK, width=2)
+    d.text((640, y + 26), "RELEASE INFORMATION", font=vt, fill=INK, anchor="ma")
+    tw = d.textlength("RELEASE INFORMATION", font=vt) / 2
+    d.line((640 - tw - 70, y + 43, 640 - tw - 16, y + 43), fill=INK, width=2)
+    d.line((640 + tw + 16, y + 43, 640 + tw + 70, y + 43), fill=INK, width=2)
+    y += 84
+    d.text((640, y), "··Yato Productions proudly presents··", font=vt, fill=ASH, anchor="ma")
+    y += 52
+
+    def rule(y):
+        d.line((x0, y - 8, x1, y - 8), fill=ASH, width=1)
+
+    def row(label, value, y, right=None):
+        rule(y)
+        d.text((x0 + 22, y), label, font=vt, fill=INDIGO)
+        d.text((x0 + 220, y), f"[ {value}", font=vt, fill=INK)
+        if right:
+            mid = 660
+            d.text((mid - 16, y), "]", font=vt, fill=INK)
+            d.line((mid, y - 8, mid, y + rows_h - 8), fill=ASH, width=1)
+            d.text((mid + 22, y), right[0], font=vt, fill=INDIGO)
+            d.text((mid + 200, y), f"[ {right[1]}", font=vt, fill=INK)
+        d.text((x1 - 22, y), "]", font=vt, fill=INK, anchor="ra")
+        return y + rows_h
+
+    y = row("File Name", "sarthak-saklani.zip", y)
+    y = row("Title", "Full-Stack Engineer, Tokyo Edition", y)
+    y = row("Origin", "New Delhi, India", y, ("Running In", "Shibuya, Tokyo"))
+    y = row("Packaged By", "MEXT Scholarship", y, ("Speaks", "EN / Japanese"))
+
+    def block(label, lines, y):
+        rule(y)
+        d.text((x0 + 22, y), label, font=vt, fill=INDIGO)
+        for i, (l, r, strong) in enumerate(lines):
+            d.text((x0 + 220, y + i * 38), l, font=vt, fill=INK if strong else ASH)
+            if r:
+                d.text((x1 - 22, y + i * 38), r, font=vt, fill=INK, anchor="ra")
+        return y + len(lines) * 38 + 22
+
+    y = block("Experience", [
+        ("Frontend Developer, Tryp.com", "Aug 2025 - Jul 2026", True),
+        ("  Owned the frontend of a travel marketplace, 400K users a month.", "", False),
+        ("  Cart, promo codes, package filters, offline bookings.", "", False),
+        ("Full-Stack Intern, Digital Palmy", "Feb 2025 - Jul 2025", True),
+        ("  Automated AWS CloudWatch alarms, 75% less manual setup.", "", False),
+    ], y)
+    y = block("Education", [
+        ("BA Japanese Language & Literature, JNU", "2026", True),
+        ("BSc Data Science & Programming, IIT Madras", "2027", True),
+        ("Japanese Language Course, Bunka Institute", "2027", True),
+    ], y)
+
+    rule(y)
+    d.text((x0 + 22, y), "Support", font=vt, fill=INDIGO)
+    for i, (on, label) in enumerate(((1, "Frontend"), (1, "Backend"), (1, "AI agents"), (0, "IIM"))):
+        bx = x0 + 220 + i * 230
+        d.text((bx, y), f"[ ] {label}", font=vt, fill=INK)
+        if on:
+            d.rectangle((bx + 12, y + 10, bx + 24, y + 22), fill=INDIGO)
+    y += rows_h
+    rule(y)
+    d.text((x0 + 22, y), "Additional releases can be located via sarthak.space", font=vt, fill=INK)
+    d.text((640, H - 54), "Made in India, assembled in Tokyo", font=vt, fill=ASH, anchor="ma")
+    tw = d.textlength("Made in India, assembled in Tokyo", font=vt) / 2
+    for sx in (-1, 1):
+        d.line((640 + sx * (tw + 20), H - 37, 640 + sx * (tw + 220), H - 37), fill=ASH, width=2)
+    save(grime(im, creases=False), "nfo.png")
+
+
+# ── release strips (projects) ──────────────────────────────────────────────
+RELEASES = [
+    dict(slug="antideploy", no="01", title="ANTIDEPLOY", jp="デプロイ", src="fuji", box=(0.35, 0.0, 0.95, 0.75), inv=False,
+         desc="Deploys for coding agents. The agents write the code; somebody still has to ship it.",
+         meta="antideploy.com  //  in progress"),
+    dict(slug="konbini", no="02", title="CAREER KONBINI", jp="人生のコンビニ", src="ghost", box=(0.52, 0.0, 0.98, 1.0), inv=False,
+         desc="Jobs, scholarships and Japanese-format paperwork for life in Japan, all on one shelf.",
+         meta="TypeScript"),
+    dict(slug="matchi", no="03", title="MATCHI", jp="街えらび", src="wave", box=(0.0, 0.05, 0.62, 0.95), inv=False,
+         desc="Ranks 937 Tokyo neighborhoods by your commute, budget and lifestyle.",
+         meta="TypeScript  Next.js  Fastify  PostGIS"),
+    dict(slug="yomimori", no="04", title="YOMIMORI", jp="読み物", src="skeleton", box=(0.0, 0.05, 0.34, 0.95), inv=False,
+         desc="AI-written Japanese stories at your JLPT level, with furigana and a built-in dictionary.",
+         meta="React  Express  MongoDB  Gemini"),
 ]
 
 
-def menu_header():
-    W, H = 1280, 150
-    im = canvas(W, H)
-    tiles(im, offset=(0, 70))
-    p = Pen(im)
-    shadow(im, (300, 26, 980, 124), offset=(6, 8), blur=8, alpha=100, r=6)
-    p.rect((300, 26, 980, 124), fill=INK, r=6)
-    p.text((640, 66), "本日のお品書き", font("brush", 48), PAPER, "mm")
-    p.text((640, 106), "today's menu. the prices are a joke, the projects are real", font("gothic", 15), (200, 196, 204), "mm")
-    save(im, "menu-header.png")
+def release(r):
+    W, H = 1280, 320
+    im = Image.new("RGB", (W, H), PAPER)
+    pw = 470
+    a = crop(r["src"], r["box"], (pw, H - 40), invert=r["inv"], gamma=1.1, contrast=1.8)
+    ink(im, halftone(a, cell=5.5, angle=30 + int(r["no"]) * 12), INK, (20, 20))
+    d = ImageDraw.Draw(im)
+    d.rectangle((20, 20, 20 + pw, H - 20), outline=INK, width=2)
+    vt = font("vt", 30)
+    x = 530
+    d.text((x, 34), f"REL.{r['no']}", font=vt, fill=INDIGO)
+    d.text((x + 110, 34), "//  SARTHAK-SAMA", font=vt, fill=ASH)
+    misprint(im, text_mask((W, H), (x - 4, 150), r["title"], font("anton", 92), anchor="ls"), INK, INDIGO, off=(5, 4), worn=.1)
+    d = ImageDraw.Draw(im)
+    for i, l in enumerate(wrap(r["desc"], vt, 630, d)):
+        d.text((x, 170 + i * 32), l, font=vt, fill=INK)
+    d.text((x, 266), r["meta"], font=font("vt", 26), fill=INDIGO)
+    d.line((1176, 24, 1176, H - 24), fill=TINT, width=1)
+    ink(im, vertical((W, H), 1222, 30, r["jp"], font("mincho", 36), step=38), INDIGO)
+    save(grime(im, creases=False), f"rel-{r['slug']}.png")
 
 
-def menu_tag(m, i):
-    W, H = 320, 980
-    im = canvas(W, H)
-    tiles(im, offset=(-i * W, 0))
-    p = Pen(im)
-    x0, x1, y0, y1 = 50, 270, 70, 760
-    p.line(((160, 22), (x0 + 40, y0 + 4)), (110, 100, 92), 2)
-    p.line(((160, 22), (x1 - 40, y0 + 4)), (110, 100, 92), 2)
-    shadow(im, (x0, y0, x1, y1), offset=(8, 12), blur=10, alpha=110, r=4)
-    p.rect((x0, y0, x1, y1), fill=WOOD, r=4)
-    rnd = random.Random(i)
-    for _ in range(9):
-        gx = rnd.uniform(x0 + 14, x1 - 14)
-        ph = rnd.random() * 6
-        pts = [(gx + math.sin(t / 70 + ph) * 6, t) for t in range(y0 + 6, y1 - 4, 16)]
-        p.line(pts, WOOD_DK, 1.5)
-    p.rect((x0, y0, x1, y1), outline=(160, 124, 84), width=2, r=4)
-    p.ellipse((152, 14, 168, 30), fill=(150, 150, 160), outline=INK, width=1.5)
-
-    f = font("brush", 86 if len(m["jp"]) <= 4 else 56)
-    step = f.size / K * 1.02
-    pf = font("brush", 40 if len(m["price"]) <= 4 else 28)
-    pstep = pf.size / K * 1.02
-    price_top = y1 - 30 - pstep * len(m["price"])
-    top = y0 + 34 + max(0, (price_top - y0 - 80 - step * len(m["jp"])) / 2)
-    p.vertical(160, top, m["jp"], f, INK, step=step)
-    p.vertical(160, price_top, m["price"], pf, HANKO, step=pstep)
-
-    p.text((160, 812), m["name"], font("gothic-black", 30), INK, "mm")
-    for j, ln in enumerate(p.wrap(m["desc"], font("gothic", 19), 260)):
-        p.text((160, 852 + j * 28), ln, font("gothic", 19), INK, "mm")
-    save(im, f"menu-{m['slug']}.png")
-
-
-# ── reviews ───────────────────────────────────────────────────────────────
-REVIEWS = [
-    ("the best frontend engineer i have seen in the entire tpot (this part of twitter)", "Mohammad Harish", "Founder, Infinite Studio"),
-    ("quickly adapted to different tech stacks and delivered features with great attention to detail", "Manu Prabhakar", "Co-founder, Digital Palmy"),
-    ("delivered the project within a very tight deadline without compromising on quality", "Alok Singh", "Freelance client"),
-]
-
-
-def reviews():
-    W, H = 1280, 580
-    im = canvas(W, H)
-    tiles(im, offset=(20, 30))
-    p = Pen(im)
-    p.text((640, 54), "お客様の声", font("brush", 46), INK, "mm")
-    p.text((640, 96), "what clients said, word for word", font("gothic", 16), GREY, "mm")
-    f = font("gothic-bold", 22)
-    for i, (q, who, role) in enumerate(REVIEWS):
-        cx = 222 + i * 418
-        top = 140 + (i % 2) * 28
-        lines = p.wrap(f"“{q}”", f, 300)
-        bh = 44 + len(lines) * 34
-        box = (cx - 182, top, cx + 182, top + bh)
-        tail = [(cx - 44, top + bh - 3), (cx - 76, top + bh + 46), (cx + 6, top + bh - 3)]
-        shadow(im, box, offset=(6, 8), blur=6, alpha=90, r=36)
-        p.rect(box, fill=(255, 255, 255), outline=INK, width=4, r=36)
-        p.poly(tail, fill=(255, 255, 255))
-        p.line([tail[0], tail[1], tail[2]], INK, 4)
-        p.line(((cx - 40, top + bh - 2), (cx + 2, top + bh - 2)), (255, 255, 255), 6)
-        for j, ln in enumerate(lines):
-            ly = top + 22 + j * 34 + 17
-            if i == 0 and j == 0:
-                hw = p.width(ln, f)
-                highlight(im, cx - hw / 2, ly - 4, hw, 18)
-            p.text((cx, ly), ln, f, INK, "mm")
-        ny = top + bh + 72
-        p.text((cx - 64, ny), who, font("gothic-black", 21), INK, "lm")
-        p.text((cx - 64, ny + 28), role, font("gothic", 16), GREY, "lm")
-        p.text((cx - 64, ny + 56), "★★★★★", font("gothic-bold", 18), PINK, "lm")
-    save(im, "reviews.png")
-
-
-# ── footer: shop sign ─────────────────────────────────────────────────────
+# ── footer ─────────────────────────────────────────────────────────────────
 def footer():
-    W, H = 1280, 470
-    im = canvas(W, H)
-    tiles(im, offset=(60, 0))
-    p = Pen(im)
-    p.line(((640, 34), (420, 120)), (90, 80, 72), 3)
-    p.line(((640, 34), (860, 120)), (90, 80, 72), 3)
-    board = (330, 112, 950, 392)
-    shadow(im, board, offset=(10, 14), blur=12, alpha=120, r=14)
-    p.rect(board, fill=PAPER, outline=INK, width=5, r=14)
-    p.rect((350, 132, 930, 372), outline=HANKO, width=2, r=8)
-    p.ellipse((630, 24, 650, 44), fill=(160, 160, 168), outline=INK, width=2)
-    p.text((640, 210), "営業中", font("brush", 104), HANKO, "mm")
-    p.text((640, 298), "OPEN for full-stack roles in Tokyo", font("gothic-black", 30), INK, "mm")
-    p.text((640, 340), "walk-ins welcome via X or LinkedIn", font("gothic", 19), GREY, "mm")
-
-    tag = Image.new("RGBA", (200 * K, 70 * K), (255, 255, 255, 255))
-    t = Pen(tag)
-    t.rect((1, 1, 199, 69), outline=INK, width=2)
-    t.text((100, 35), "please knock", font("hand", 24), PEN, "mm")
-    paste_rotated(im, tag, (1070, 330), 6)
-    save(im, "footer.png")
+    W, H = 1280, 460
+    im = Image.new("RGB", (W, H), PAPER)
+    a = crop("wave", (0.0, 0.08, 1.0, 0.92), (W, H), invert=False, gamma=1.2, contrast=1.7)
+    ink(im, dither(a * 0.55, scale=3), TINT)
+    ink(im, halftone(a, cell=8, angle=15), INK)
+    d = ImageDraw.Draw(im)
+    d.rectangle((70, 120, 840, 340), fill=PAPER, outline=INDIGO, width=2)
+    d.rectangle((70, 120, 840, 152), fill=INDIGO)
+    d.text((86, 122), "NEXT  //", font=font("vt", 30), fill=PAPER)
+    d.text((188, 136), "次回", font=font("mincho", 24), fill=PAPER, anchor="lm")
+    misprint(im, text_mask((W, H), (90, 262), "OPEN TO FULL-STACK ROLES", font("anton", 74), anchor="ls"), INK, INDIGO, off=(5, 4), worn=.08)
+    d = ImageDraw.Draw(im)
+    d.text((92, 286), "Joining a product team in Tokyo. Say hi on X or LinkedIn.", font=font("vt", 30), fill=INK)
+    col = vertical((W, H), 1170, 40, "求職中", font("mincho", 96), step=100)
+    ink(im, col.filter(ImageFilter.MaxFilter(11)), PAPER)
+    misprint(im, col, INK, INDIGO, off=(6, 5), worn=.1)
+    frame(d, W, H)
+    save(grime(im), "footer.png")
 
 
 if __name__ == "__main__":
@@ -497,9 +482,11 @@ if __name__ == "__main__":
         if f.endswith(".png"):
             os.remove(os.path.join(ASSETS, f))
     hero()
-    rirekisho()
-    menu_header()
-    for i, m in enumerate(MENU):
-        menu_tag(m, i)
-    reviews()
+    header("who", "who am i", "自己紹介")
+    header("releases", "releases", "作品集")
+    header("activity", "activity", "活動記録")
+    tiger()
+    nfo()
+    for r in RELEASES:
+        release(r)
     footer()
