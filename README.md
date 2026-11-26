@@ -1,45 +1,57 @@
-<img src="./assets/hero.svg" alt="Sarthak Saklani, full-stack engineer in Tokyo" width="100%">
+<img src="./assets/hero.png" alt="Sarthak Saklani, full-stack engineer in Tokyo" width="100%">
 
 <p align="center">
-  <a href="https://sarthak.space"><img src="./assets/btn-site.svg" alt="sarthak.space" height="44"></a>&nbsp;
-  <a href="https://x.com/Sarthak_Sama"><img src="./assets/btn-x.svg" alt="@Sarthak_Sama on X" height="44"></a>&nbsp;
-  <a href="https://www.linkedin.com/in/sarthak-saklani-734b85235"><img src="./assets/btn-linkedin.svg" alt="LinkedIn" height="44"></a>
+  <a href="https://sarthak.space"><img src="https://img.shields.io/badge/sarthak.space-E8000B?style=for-the-badge&logo=googlechrome&logoColor=white" alt="sarthak.space"></a>
+  <a href="https://x.com/Sarthak_Sama"><img src="https://img.shields.io/badge/@Sarthak__Sama-000000?style=for-the-badge&logo=x&logoColor=white" alt="X"></a>
+  <a href="https://www.linkedin.com/in/sarthak-saklani-734b85235"><img src="https://img.shields.io/badge/LinkedIn-E8000B?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
 </p>
 
 <br>
 
-Hi, I'm Sarthak. Most of the internet knows me as Yato.
+<img src="./assets/h-who.png" alt="Who am I" width="100%">
 
-I'm a full-stack engineer in Tokyo, and frontend is where I lose all sense of proportion. If your button is two pixels off, I have already noticed, and I am trying very hard to be normal about it.
+<img src="./assets/tiger.png" alt="Tiger by Utagawa Kuniyoshi, printed in red halftone" width="38%" align="left">
 
-I came to Japan from India on a MEXT scholarship. Before that I studied Japanese literature at JNU, so I can read Sōseki in the original and still get lost inside Shinjuku station. I'm also finishing a data science degree at IIT Madras, so I can now write keigo and pandas, sometimes in the same afternoon. I also got into IIM and turned it down, which my relatives are still processing.
-
-<br>
-
-<p align="center">
-  <img src="./assets/receipt.svg" alt="Receipt from Yato Mart listing: BA Japanese literature at JNU, BSc data science at IIT Madras, Japanese course at Bunka Institute, frontend developer at Tryp.com, full-stack intern at Digital Palmy, MEXT scholarship, IIM admission returned. Subtotal: one engineer, paid in coffee." width="46%">
-  &nbsp;
-  <img src="./assets/inbox.svg" alt="A flip phone inbox with three testimonials from people I've worked with" width="46%">
+<p align="justify">
+I'm Sarthak, Yato on most of the internet. A full-stack engineer in Tokyo, and the kind of frontend person who notices when your button is two pixels off and tries very hard to be normal about it.
 </p>
 
+<p align="justify">
+I moved here from India on a MEXT scholarship. I studied Japanese literature at JNU, so I can read Sōseki in the original and still get lost inside Shinjuku station. I'm finishing a data science degree at IIT Madras too, so I write keigo and pandas, sometimes in the same afternoon. I got into IIM and turned it down. My relatives are still processing it.
+</p>
+
+<p align="justify">
+Until this summer I owned the frontend of Tryp.com's travel marketplace, used by about 400K people a month. Now I'm building <a href="https://antideploy.com"><b>Antideploy</b></a>, a deploy platform for coding agents.
+</p>
+
+<p align="justify">
+Off the keyboard I'm a man of a hundred hobbies. The latest is skateboarding. Tokyo's pavements have been very patient with me.
+</p>
+
+<br clear="left">
+
+> [!CAUTION]
+> Will notice if your button is 2px off. Will say something.
+
+<img src="./assets/nfo.png" alt="Release information. Experience: Frontend Developer at Tryp.com, Aug 2025 to Jul 2026; Full-Stack Intern at Digital Palmy, Feb to Jul 2025. Education: BA Japanese Language and Literature, JNU, 2026; BSc Data Science and Programming, IIT Madras, 2027; Japanese Language Course, Bunka Institute, 2027." width="100%">
+
 <br>
 
-### What I like building
+<img src="./assets/h-releases.png" alt="Releases" width="100%">
 
-**Tools for developers.** Right now that's [**Antideploy**](https://antideploy.com), a deploy platform for coding agents. The agents write the code. Somebody still has to ship it.
-
-**Things that make Japan less confusing.** Japan runs on paperwork, and I'm working on it. [Career Konbini](https://github.com/Sarthak-Sama/career-combini) puts jobs, scholarships and Japanese-format documents on one shelf. [Matchi](https://matchi-web-ten.vercel.app) ranks 937 Tokyo neighborhoods by your commute, budget and lifestyle, so you can pick one before you've signed a two-year lease. [Yomimori](https://github.com/Sarthak-Sama/Yomimori) writes Japanese stories at your JLPT level, with furigana.
-
-**Interfaces that feel good to touch.** At [Tryp.com](https://tryp.com) I owned the frontend of the travel marketplace: the cart, the promo codes, a holiday-package filter with more interdependent rules than a Tokyo garbage calendar, and offline bookings for the moment your hotel confirmation matters and your signal doesn't. About 400K people a month used it.
-
-**Anything with a deadline.** I once built an AI that negotiates in polite business Japanese, the hardest boss in any language. It took 2nd place at Hackvatar Tokyo.
-
-Off the keyboard I'm a man of a hundred hobbies. The latest one is skateboarding, and Tokyo's pavements have been very patient with me.
+<a href="https://antideploy.com"><img src="./assets/rel-antideploy.png" alt="Antideploy: a deploy platform built for coding agents" width="100%"></a>
+<a href="https://github.com/Sarthak-Sama/career-combini"><img src="./assets/rel-konbini.png" alt="Career Konbini: jobs, scholarships and Japanese paperwork on one shelf" width="100%"></a>
+<a href="https://matchi-web-ten.vercel.app"><img src="./assets/rel-matchi.png" alt="Matchi: ranks 937 Tokyo neighborhoods by commute, budget and lifestyle" width="100%"></a>
+<a href="https://github.com/Sarthak-Sama/Yomimori"><img src="./assets/rel-yomimori.png" alt="Yomimori: AI-written Japanese stories at your JLPT level" width="100%"></a>
 
 <br>
 
-<img src="./assets/spec.svg" alt="Specifications: TypeScript, JavaScript, Python, React, Next.js, Node.js, Express, Fastify, PostgreSQL, PostGIS, MongoDB, Docker, Vercel, Gemini. Made in India, assembled in Tokyo." width="100%">
+<img src="./assets/h-activity.png" alt="Activity" width="100%">
+
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=Sarthak-Sama&bg_color=000000&color=e8e2d4&line=e8000b&point=e8e2d4&area=true&area_color=e8000b&hide_border=true&custom_title=%20" width="100%" alt="Contribution activity graph">
 
 <br>
 
-<a href="https://www.linkedin.com/in/sarthak-saklani-734b85235"><img src="./assets/next.svg" alt="Next track: joining a product team in Tokyo. Open to full-stack roles." width="100%"></a>
+<img src="./assets/footer.png" alt="Open to full-stack roles in Tokyo" width="100%">
+
+<p align="center"><sub>Prints by Utagawa Kuniyoshi and Katsushika Hokusai, public domain.</sub></p>
